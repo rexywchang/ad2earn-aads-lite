@@ -1616,12 +1616,15 @@
       e.preventDefault();
       const taskBar = e.currentTarget;
       taskBar.classList.add('dragging');
+      const style = window.getComputedStyle(taskBar);
       resizeState = {
         active: true,
         taskId: taskBar.dataset.taskId,
         handle: 'move',
         startX: e.clientX,
-        element: taskBar
+        element: taskBar,
+        originalLeft: parseFloat(style.left) || 0,
+        originalWidth: parseFloat(style.width) || 0
       };
 
       document.addEventListener('mousemove', handleResizeMove);
@@ -1634,12 +1637,15 @@
       e.preventDefault();
       const taskBar = e.target.closest('.task-bar');
       taskBar.classList.add('dragging');
+      const style = window.getComputedStyle(taskBar);
       resizeState = {
         active: true,
         taskId: taskBar.dataset.taskId,
         handle: e.target.dataset.handle,
         startX: e.clientX,
-        element: taskBar
+        element: taskBar,
+        originalLeft: parseFloat(style.left) || 0,
+        originalWidth: parseFloat(style.width) || 0
       };
 
       document.addEventListener('mousemove', handleResizeMove);
@@ -1647,8 +1653,23 @@
     }
 
     function handleResizeMove(e) {
-      if (!resizeState.active) return;
+      if (!resizeState.active || !resizeState.element) return;
       e.preventDefault();
+
+      const deltaX = e.clientX - resizeState.startX;
+      const bar = resizeState.element;
+
+      if (resizeState.handle === 'move') {
+        // Move whole bar
+        bar.style.left = (resizeState.originalLeft + deltaX) + 'px';
+      } else if (resizeState.handle === 'start') {
+        // Resize from left (adjust left and width)
+        bar.style.left = (resizeState.originalLeft + deltaX) + 'px';
+        bar.style.width = (resizeState.originalWidth - deltaX) + 'px';
+      } else if (resizeState.handle === 'end') {
+        // Resize from right (adjust width only)
+        bar.style.width = (resizeState.originalWidth + deltaX) + 'px';
+      }
     }
 
     function handleResizeEnd(e) {
