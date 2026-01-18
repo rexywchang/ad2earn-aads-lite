@@ -161,13 +161,11 @@
     }
 
     .gantt-table thead th.col-group {
-      width: var(--group-col-width);
-      min-width: var(--group-col-width);
+      white-space: nowrap;
     }
 
     .gantt-table thead th.col-task {
-      width: var(--task-col-width);
-      min-width: var(--task-col-width);
+      white-space: nowrap;
     }
 
     .gantt-table thead th.col-day {
@@ -210,24 +208,30 @@
       font-size: 0.5rem;
       font-weight: 600;
       color: var(--text-secondary);
-      writing-mode: vertical-rl;
-      text-orientation: mixed;
-      padding: 4px 2px;
-      width: var(--group-col-width);
-      min-width: var(--group-col-width);
+      padding: 0;
+      position: relative;
     }
 
     .group-label {
       display: flex;
       align-items: center;
-      gap: 4px;
+      height: 100%;
     }
 
     .group-color-bar {
-      width: 3px;
+      width: 4px;
       height: 100%;
-      min-height: 12px;
-      border-radius: 1px;
+      min-height: 100%;
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+
+    .group-name {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      padding: 6px 4px 6px 8px;
+      white-space: nowrap;
     }
 
     .cell-group.dragging {
@@ -270,10 +274,6 @@
       padding: 0 6px;
       font-size: 0.55rem;
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      width: var(--task-col-width);
-      min-width: var(--task-col-width);
     }
 
     .cell-task .task-content {
@@ -294,9 +294,7 @@
     }
 
     .task-name {
-      flex: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .cell-task.completed {
@@ -322,8 +320,12 @@
       color: var(--text-primary);
       font-size: 0.55rem;
       padding: 2px 4px;
-      width: 100%;
       outline: none;
+    }
+
+    .group-name .inline-input {
+      writing-mode: horizontal-tb;
+      width: 80px;
     }
 
     .new-row {
@@ -850,10 +852,8 @@
 
           if (idx === 0) {
             html += `<td class="cell-group" rowspan="${taskCount}" draggable="true" data-group-id="${group.id}">
-              <div class="group-label">
-                <span class="group-color-bar" style="background: ${group.color}"></span>
-                <span>${group.name}</span>
-              </div>
+              <span class="group-color-bar" style="background: ${group.color}"></span>
+              <span class="group-name">${group.name}</span>
             </td>`;
           }
 
@@ -911,10 +911,8 @@
 
           if (idx === 0) {
             html += `<td class="cell-group" rowspan="${activeTasks.length}" draggable="true" data-group-id="${group.id}">
-              <div class="group-label">
-                <span class="group-color-bar" style="background: ${group.color}"></span>
-                <span>${group.name}</span>
-              </div>
+              <span class="group-color-bar" style="background: ${group.color}"></span>
+              <span class="group-name">${group.name}</span>
             </td>`;
           }
 
@@ -1196,23 +1194,28 @@
 
     // Task drag handlers
     function handleTaskDragStart(e) {
+      e.stopPropagation();
       dragState.type = 'task';
       dragState.sourceId = e.currentTarget.dataset.taskId;
       dragState.sourceGroupId = e.currentTarget.dataset.groupId;
       e.currentTarget.classList.add('dragging');
       e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', dragState.sourceId);
     }
 
     function handleTaskDragEnd(e) {
       e.currentTarget.classList.remove('dragging');
       document.querySelectorAll('.cell-group').forEach(el => el.classList.remove('drag-over'));
+      document.querySelectorAll('.cell-task').forEach(el => el.classList.remove('drag-over'));
       dragState = { type: null, sourceId: null, sourceGroupId: null };
     }
 
     function handleTaskDragOver(e) {
       if (dragState.type !== 'task') return;
       e.preventDefault();
-      e.currentTarget.classList.add('drag-over');
+      e.stopPropagation();
+      const groupCell = e.currentTarget.closest('.cell-group') || e.currentTarget;
+      groupCell.classList.add('drag-over');
     }
 
     function handleTaskDragLeave(e) {
@@ -1221,11 +1224,16 @@
 
     function handleTaskDrop(e) {
       e.preventDefault();
-      e.currentTarget.classList.remove('drag-over');
+      e.stopPropagation();
+      document.querySelectorAll('.cell-group').forEach(el => el.classList.remove('drag-over'));
+
       if (dragState.type !== 'task') return;
 
-      const targetGroupId = e.currentTarget.dataset.groupId;
-      if (targetGroupId === dragState.sourceGroupId) return;
+      // Find the target group ID from the cell
+      const targetCell = e.currentTarget.closest('.cell-group') || e.currentTarget;
+      const targetGroupId = targetCell.dataset.groupId;
+
+      if (!targetGroupId || targetGroupId === dragState.sourceGroupId) return;
 
       // Find and move task
       const sourceGroup = SELAH_DATA.groups.find(g => g.id === dragState.sourceGroupId);
@@ -1328,24 +1336,34 @@
       return null;
     }
 
-    // Add new group
+    // Add new group (at bottom, with default task)
     function addNewGroup() {
       const groupId = 'group-' + Date.now();
+      const taskId = 'task-' + Date.now();
       const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#ef4444'];
       const color = colors[SELAH_DATA.groups.length % colors.length];
+      const today = state.today.toISOString().split('T')[0];
 
       SELAH_DATA.groups.push({
         id: groupId,
         name: '新群組',
         color: color,
-        tasks: []
+        tasks: [{
+          id: taskId,
+          name: '新專案',
+          start: today,
+          end: today,
+          status: 'not_started',
+          note: ''
+        }]
       });
 
       render();
+      saveData();
 
       // Make the new group name editable
       setTimeout(() => {
-        const groupCell = document.querySelector(`[data-group-id="${groupId}"] .group-label span:last-child`);
+        const groupCell = document.querySelector(`[data-group-id="${groupId}"] .group-name`);
         if (groupCell) {
           makeEditable(groupCell, (newName) => {
             const group = SELAH_DATA.groups.find(g => g.id === groupId);
@@ -1359,7 +1377,7 @@
       }, 100);
     }
 
-    // Add new task
+    // Add new task (to last group)
     function addNewTask() {
       if (SELAH_DATA.groups.length === 0) {
         alert('請先新增群組');
@@ -1369,9 +1387,9 @@
       const taskId = 'task-' + Date.now();
       const today = state.today.toISOString().split('T')[0];
 
-      // Add to first group by default
-      const firstGroup = SELAH_DATA.groups[0];
-      firstGroup.tasks.push({
+      // Add to last group
+      const lastGroup = SELAH_DATA.groups[SELAH_DATA.groups.length - 1];
+      lastGroup.tasks.push({
         id: taskId,
         name: '新專案',
         start: today,
@@ -1381,6 +1399,7 @@
       });
 
       render();
+      saveData();
 
       // Make the new task name editable
       setTimeout(() => {
