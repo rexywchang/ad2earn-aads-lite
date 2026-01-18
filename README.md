@@ -1,2 +1,47 @@
-# ad2earn-aads-lite
-這是一個最簡版本的 Web3 廣告頁面，只嵌入了 [A-ADS](https://a-ads.com) 廣告，無需使用者互動，即可透過展示獲得比特幣收益。
+# Selah
+
+> סֶלָה — 停下，思考，再前行
+
+個人專案進度管理系統，提供視覺化甘特圖介面。
+
+## Demo
+
+**https://rexywchang.github.io/selah/**
+
+## 功能
+
+- **全年甘特圖** - 按天或按周顯示整年任務分佈
+- **周甘特圖** - 聚焦單周任務細節
+- **多種排序** - 按分群或開始日期排序
+- **狀態追蹤** - 進行中、已完成、暫停、尚未開始
+- **里程碑標記** - 重要交付日期標示
+- **互動式 Tooltip** - 滑鼠懸停顯示任務詳情
+
+## 使用方式
+
+1. 編輯 `data.js` 設定專案數據
+2. 推送到 GitHub，自動部署至 GitHub Pages
+
+## 數據格式
+
+```javascript
+{
+  id: "task-id",
+  name: "任務名稱",
+  start: "2026-01-20",
+  end: "2026-01-24",
+  status: "in_progress",  // completed / in_progress / not_started
+  milestone: "2026-01-22",
+  note: "備註"
+}
+```
+
+## 技術
+
+- 純 HTML/CSS/JavaScript
+- 無框架依賴
+- GitHub Pages 部署
+
+---
+
+_Sponsored by [A-ADS](https://a-ads.com)_
