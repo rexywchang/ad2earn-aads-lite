@@ -792,6 +792,23 @@
       color: var(--text-secondary);
     }
 
+    .stats {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      color: var(--text-secondary);
+    }
+
+    .stat-count {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
     /* Scrollbar */
     ::-webkit-scrollbar {
       width: 6px;
@@ -871,9 +888,15 @@
         <span>今天</span>
       </div>
     </div>
-    <div class="sponsor">
-      <span>Sponsored by</span>
-      <iframe data-aa='2403226' src='//acceptable.a-ads.com/2403226' style='border:0; width:100px; height:16px; overflow:hidden; background-color: transparent;'></iframe>
+    <div class="stats">
+      <div class="stat-item">
+        <span class="stat-label">🔵 執行中:</span>
+        <span class="stat-count" id="stat-in-progress">0</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">🔷 背景執行:</span>
+        <span class="stat-count" id="stat-background">0</span>
+      </div>
     </div>
   </div>
 
@@ -1058,6 +1081,22 @@
       }
 
       addEventListeners();
+      updateStats();
+    }
+
+    function updateStats() {
+      let inProgressCount = 0;
+      let backgroundCount = 0;
+
+      SELAH_DATA.groups.forEach(group => {
+        group.tasks.forEach(task => {
+          if (task.status === 'in_progress') inProgressCount++;
+          else if (task.status === 'background') backgroundCount++;
+        });
+      });
+
+      document.getElementById('stat-in-progress').textContent = inProgressCount;
+      document.getElementById('stat-background').textContent = backgroundCount;
     }
 
     function renderYearView(table) {
