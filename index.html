@@ -876,7 +876,7 @@
   <div class="status-menu" id="status-menu">
     <div class="status-menu-item" data-status="in_progress">🔵 運行中</div>
     <div class="status-menu-item" data-status="background">🔷 背景執行</div>
-    <div class="status-menu-item" data-status="pending">⚪ 待安排</div>
+    <div class="status-menu-item" data-status="not_started">⚪ 未開始</div>
   </div>
 
   <div class="delete-zone" id="delete-zone">
@@ -908,7 +908,7 @@
           <select id="modal-status">
             <option value="in_progress">運行中</option>
             <option value="background">背景執行</option>
-            <option value="pending">待安排</option>
+            <option value="not_started">未開始</option>
           </select>
         </div>
         <div class="modal-field">
@@ -931,7 +931,7 @@
     const STATUS_CONFIG = {
       in_progress: { label: "運行中", color: "#3b82f6", icon: "🔵" },
       background: { label: "背景執行", color: "#3b82f6", icon: "🔷" },
-      pending: { label: "待安排", color: "#9ca3af", icon: "⚪" }
+      not_started: { label: "未開始", color: "#9ca3af", icon: "⚪" }
     };
 
     const state = {
@@ -1238,7 +1238,7 @@
             endCell = Math.floor((taskEnd - rangeStart) / (24 * 60 * 60 * 1000));
           }
 
-          if (i === startCell && task.status !== 'pending') {
+          if (i === startCell && task.status !== 'not_started') {
             const barWidth = (endCell - startCell + 1) * cellWidth - 4;
             const isBackground = task.status === 'background';
             cellContent += `<div class="task-bar ${task.status} ${isBackground ? 'background' : ''}"
@@ -1282,7 +1282,7 @@
             const startDay = Math.floor((effectiveStart - weekStart) / (24 * 60 * 60 * 1000));
             const endDay = Math.floor((effectiveEnd - weekStart) / (24 * 60 * 60 * 1000));
 
-            if (i === startDay && task.status !== 'pending') {
+            if (i === startDay && task.status !== 'not_started') {
               const barWidth = (endDay - startDay + 1) * cellWidth - 4;
               const isBackground = task.status === 'background';
               cellContent += `<div class="task-bar ${task.status} ${isBackground ? 'background' : ''}"
@@ -1506,6 +1506,8 @@
         if (taskIdx !== -1) {
           const [task] = sourceGroup.tasks.splice(taskIdx, 1);
           targetGroup.tasks.push(task);
+          // Ensure source group still has at least one task
+          ensureGroupHasTask(sourceGroup);
           // Sort by start date
           targetGroup.tasks.sort((a, b) => {
             if (!a.start) return 1;
@@ -1530,7 +1532,7 @@
       }
     }
 
-    // Day cell click to set date for tasks without dates
+    // Day cell click to set date for not_started tasks or tasks without dates
     function handleDayCellClick(e) {
       const row = e.currentTarget.closest('tr');
       if (!row) return;
@@ -1541,25 +1543,40 @@
       const taskId = taskCell.dataset.taskId;
       const task = findTaskById(taskId);
 
-      if (task && (!task.start || !task.end)) {
-        // Find the date for this cell
+      // Only handle not_started tasks or tasks without dates
+      if (task && (task.status === 'not_started' || !task.start || !task.end)) {
         const cellIndex = Array.from(row.children).indexOf(e.currentTarget);
-        const headerRow = document.querySelector('.gantt-table thead tr');
-        const dayHeaders = headerRow.querySelectorAll('.col-day');
         const dayIndex = cellIndex - 2; // Subtract group and task columns
 
-        if (dayIndex >= 0 && dayIndex < dayHeaders.length) {
-          // Calculate date based on view mode
-          const { start } = state.view === 'week' ? getWeekDateRange() : getYearDateRange();
-          const clickedDate = new Date(start);
-          clickedDate.setDate(clickedDate.getDate() + dayIndex);
-          const dateStr = clickedDate.toISOString().split('T')[0];
+        if (dayIndex >= 0) {
+          let clickedDate;
 
+          if (state.view === 'week') {
+            // Week view: each cell is one day
+            const { start } = getWeekDateRange();
+            clickedDate = new Date(start);
+            clickedDate.setDate(clickedDate.getDate() + dayIndex);
+          } else {
+            // Year view: depends on display mode
+            const { start } = getYearDateRange();
+            clickedDate = new Date(start);
+
+            if (state.displayMode === 'week') {
+              clickedDate.setDate(clickedDate.getDate() + dayIndex * 7);
+            } else if (state.displayMode === 'biweek') {
+              clickedDate.setDate(clickedDate.getDate() + dayIndex * 14);
+            } else if (state.displayMode === 'month') {
+              clickedDate.setMonth(clickedDate.getMonth() + dayIndex);
+            } else {
+              // day mode
+              clickedDate.setDate(clickedDate.getDate() + dayIndex);
+            }
+          }
+
+          const dateStr = clickedDate.toISOString().split('T')[0];
           task.start = dateStr;
           task.end = dateStr;
-          if (!task.status || task.status === 'not_started') {
-            task.status = 'in_progress';
-          }
+          task.status = 'in_progress';
           render();
           saveData();
         }
@@ -1673,6 +1690,20 @@
       return null;
     }
 
+    // Ensure group always has at least one task
+    function ensureGroupHasTask(group) {
+      if (group.tasks.length === 0) {
+        group.tasks.push({
+          id: 'task-' + Date.now(),
+          name: '新專案',
+          start: null,
+          end: null,
+          status: 'not_started',
+          note: ''
+        });
+      }
+    }
+
     // Add new group (at bottom, with default task)
     function addNewGroup() {
       const groupId = 'group-' + Date.now();
@@ -1760,6 +1791,7 @@
       input.type = 'text';
       input.className = 'inline-input';
       input.value = originalText;
+      let cancelled = false;
 
       element.textContent = '';
       element.appendChild(input);
@@ -1767,6 +1799,10 @@
       input.select();
 
       const save = () => {
+        if (cancelled) {
+          element.textContent = originalText;
+          return;
+        }
         const newValue = input.value.trim();
         element.textContent = newValue || originalText;
         onSave(newValue);
@@ -1778,7 +1814,8 @@
           e.preventDefault();
           input.blur();
         } else if (e.key === 'Escape') {
-          element.textContent = originalText;
+          cancelled = true;
+          input.blur();
         }
       });
     }
@@ -1945,6 +1982,8 @@
               const taskName = sourceGroup.tasks[taskIdx].name;
               if (confirm(`確定要刪除專案「${taskName}」嗎？`)) {
                 sourceGroup.tasks.splice(taskIdx, 1);
+                // Ensure group still has at least one task
+                ensureGroupHasTask(sourceGroup);
                 render();
                 saveData();
               }
