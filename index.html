@@ -230,6 +230,39 @@
       border-radius: 1px;
     }
 
+    .cell-group.dragging {
+      opacity: 0.5;
+    }
+
+    .cell-group.drag-over {
+      background: var(--accent);
+    }
+
+    /* Add buttons */
+    .add-btn {
+      background: transparent;
+      border: 1px dashed var(--border-color);
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 0.6rem;
+      padding: 2px 6px;
+      border-radius: 3px;
+      transition: all 0.2s;
+    }
+
+    .add-btn:hover {
+      background: var(--bg-tertiary);
+      border-color: var(--accent);
+      color: var(--text-primary);
+    }
+
+    .header-with-add {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
     /* Task cell */
     .cell-task {
       background: var(--bg-secondary);
@@ -274,6 +307,33 @@
       text-decoration: line-through;
     }
 
+    .cell-task.dragging {
+      opacity: 0.5;
+    }
+
+    .cell-task.drag-over {
+      background: var(--accent) !important;
+    }
+
+    /* Inline editing */
+    .inline-input {
+      background: var(--bg-primary);
+      border: 1px solid var(--accent);
+      color: var(--text-primary);
+      font-size: 0.55rem;
+      padding: 2px 4px;
+      width: 100%;
+      outline: none;
+    }
+
+    .new-row {
+      background: var(--bg-tertiary);
+    }
+
+    .new-row td {
+      background: rgba(99, 102, 241, 0.1);
+    }
+
     /* Day cells */
     .cell-day {
       background: var(--bg-primary);
@@ -311,6 +371,66 @@
 
     .task-bar.completed {
       opacity: 0.7;
+    }
+
+    .task-bar .drag-handle {
+      position: absolute;
+      top: 0;
+      width: 6px;
+      height: 100%;
+      cursor: ew-resize;
+      background: rgba(255, 255, 255, 0.2);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .task-bar:hover .drag-handle {
+      opacity: 1;
+    }
+
+    .task-bar .drag-handle.left {
+      left: 0;
+      border-radius: 3px 0 0 3px;
+    }
+
+    .task-bar .drag-handle.right {
+      right: 0;
+      border-radius: 0 3px 3px 0;
+    }
+
+    /* Status toggle menu */
+    .status-menu {
+      position: fixed;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 4px 0;
+      z-index: 1001;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      display: none;
+    }
+
+    .status-menu.visible {
+      display: block;
+    }
+
+    .status-menu-item {
+      padding: 4px 12px;
+      cursor: pointer;
+      font-size: 0.55rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+
+    .status-menu-item:hover {
+      background: var(--bg-secondary);
+    }
+
+    .status-menu-item.active {
+      background: var(--accent);
+      color: white;
     }
 
     .task-bar.background {
@@ -557,6 +677,12 @@
   </div>
 
   <div class="tooltip" id="tooltip"></div>
+  <div class="status-menu" id="status-menu">
+    <div class="status-menu-item" data-status="in_progress">🔵 進行中</div>
+    <div class="status-menu-item" data-status="background">🔷 背景執行</div>
+    <div class="status-menu-item" data-status="paused">🟡 暫停中</div>
+    <div class="status-menu-item" data-status="completed">🟢 已完成</div>
+  </div>
 
   <script src="data.js"></script>
   <script>
@@ -686,8 +812,8 @@
       const totalDays = getDaysBetween(start, end);
 
       let html = '<thead><tr>';
-      html += '<th class="col-group">群組</th>';
-      html += '<th class="col-task">專案</th>';
+      html += '<th class="col-group"><div class="header-with-add">群組 <button class="add-btn" onclick="addNewGroup()">+</button></div></th>';
+      html += '<th class="col-task"><div class="header-with-add">專案 <button class="add-btn" onclick="addNewTask()">+</button></div></th>';
 
       if (state.displayMode === 'day') {
         for (let i = 0; i < totalDays; i++) {
@@ -723,7 +849,7 @@
           html += '<tr>';
 
           if (idx === 0) {
-            html += `<td class="cell-group" rowspan="${taskCount}">
+            html += `<td class="cell-group" rowspan="${taskCount}" draggable="true" data-group-id="${group.id}">
               <div class="group-label">
                 <span class="group-color-bar" style="background: ${group.color}"></span>
                 <span>${group.name}</span>
@@ -731,7 +857,7 @@
             </td>`;
           }
 
-          html += `<td class="cell-task ${task.status}" data-task-id="${task.id}">
+          html += `<td class="cell-task ${task.status}" data-task-id="${task.id}" data-group-id="${group.id}" draggable="true">
             <div class="task-content">
               <span class="task-color-dot" style="background: ${group.color}"></span>
               <span class="task-status">${STATUS_CONFIG[task.status].icon}</span>
@@ -753,8 +879,8 @@
       const { start, end } = getWeekDateRange();
 
       let html = '<thead><tr>';
-      html += '<th class="col-group">群組</th>';
-      html += '<th class="col-task">專案</th>';
+      html += '<th class="col-group"><div class="header-with-add">群組 <button class="add-btn" onclick="addNewGroup()">+</button></div></th>';
+      html += '<th class="col-task"><div class="header-with-add">專案 <button class="add-btn" onclick="addNewTask()">+</button></div></th>';
 
       for (let i = 0; i < 7; i++) {
         const date = new Date(start);
@@ -784,7 +910,7 @@
           html += '<tr>';
 
           if (idx === 0) {
-            html += `<td class="cell-group" rowspan="${activeTasks.length}">
+            html += `<td class="cell-group" rowspan="${activeTasks.length}" draggable="true" data-group-id="${group.id}">
               <div class="group-label">
                 <span class="group-color-bar" style="background: ${group.color}"></span>
                 <span>${group.name}</span>
@@ -792,7 +918,7 @@
             </td>`;
           }
 
-          html += `<td class="cell-task ${task.status}" data-task-id="${task.id}">
+          html += `<td class="cell-task ${task.status}" data-task-id="${task.id}" data-group-id="${group.id}" draggable="true">
             <div class="task-content">
               <span class="task-color-dot" style="background: ${group.color}"></span>
               <span class="task-status">${STATUS_CONFIG[task.status].icon}</span>
@@ -880,12 +1006,15 @@
             endCell = Math.floor((taskEnd - rangeStart) / (24 * 60 * 60 * 1000));
           }
 
-          if (i === startCell) {
+          if (i === startCell && task.status !== 'paused') {
             const barWidth = (endCell - startCell + 1) * cellWidth - 4;
             const isBackground = task.status === 'background';
             cellContent += `<div class="task-bar ${task.status} ${isBackground ? 'background' : ''}"
                  style="left: 2px; width: ${barWidth}px; background-color: ${group.color};"
-                 data-task-id="${task.id}"></div>`;
+                 data-task-id="${task.id}">
+                 <span class="drag-handle left" data-handle="start"></span>
+                 <span class="drag-handle right" data-handle="end"></span>
+            </div>`;
           }
 
           if (task.milestone) {
@@ -933,12 +1062,16 @@
             const startDay = Math.floor((effectiveStart - weekStart) / (24 * 60 * 60 * 1000));
             const endDay = Math.floor((effectiveEnd - weekStart) / (24 * 60 * 60 * 1000));
 
-            if (i === startDay) {
+            if (i === startDay && task.status !== 'paused') {
               const barWidth = (endDay - startDay + 1) * cellWidth - 4;
               const isBackground = task.status === 'background';
               cellContent += `<div class="task-bar ${task.status} ${isBackground ? 'background' : ''}"
                    style="left: 2px; width: ${barWidth}px; background-color: ${group.color};"
-                   data-task-id="${task.id}">${task.name}</div>`;
+                   data-task-id="${task.id}">
+                   <span class="drag-handle left" data-handle="start"></span>
+                   ${task.name}
+                   <span class="drag-handle right" data-handle="end"></span>
+              </div>`;
             }
           }
 
@@ -959,7 +1092,21 @@
       return html;
     }
 
+    let dragState = {
+      type: null, // 'group' or 'task'
+      sourceId: null,
+      sourceGroupId: null
+    };
+
+    let resizeState = {
+      active: false,
+      taskId: null,
+      handle: null,
+      startX: null
+    };
+
     function addEventListeners() {
+      // Tooltip events
       document.querySelectorAll('.task-bar, .milestone, .cell-task').forEach(el => {
         el.addEventListener('mouseenter', (e) => {
           const taskId = e.currentTarget.dataset.taskId;
@@ -970,6 +1117,321 @@
         });
         el.addEventListener('mouseleave', hideTooltip);
       });
+
+      // Group drag events
+      document.querySelectorAll('.cell-group[draggable="true"]').forEach(el => {
+        el.addEventListener('dragstart', handleGroupDragStart);
+        el.addEventListener('dragend', handleGroupDragEnd);
+        el.addEventListener('dragover', handleGroupDragOver);
+        el.addEventListener('drop', handleGroupDrop);
+        el.addEventListener('dragleave', handleGroupDragLeave);
+      });
+
+      // Task drag events
+      document.querySelectorAll('.cell-task[draggable="true"]').forEach(el => {
+        el.addEventListener('dragstart', handleTaskDragStart);
+        el.addEventListener('dragend', handleTaskDragEnd);
+      });
+
+      // Task drop targets (group cells)
+      document.querySelectorAll('.cell-group').forEach(el => {
+        el.addEventListener('dragover', handleTaskDragOver);
+        el.addEventListener('drop', handleTaskDrop);
+        el.addEventListener('dragleave', handleTaskDragLeave);
+      });
+
+      // Task bar right-click for status menu
+      document.querySelectorAll('.task-bar').forEach(el => {
+        el.addEventListener('contextmenu', handleTaskBarContextMenu);
+      });
+
+      // Drag handles for resizing
+      document.querySelectorAll('.drag-handle').forEach(el => {
+        el.addEventListener('mousedown', handleResizeStart);
+      });
+    }
+
+    // Group drag handlers
+    function handleGroupDragStart(e) {
+      dragState.type = 'group';
+      dragState.sourceId = e.currentTarget.dataset.groupId;
+      e.currentTarget.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function handleGroupDragEnd(e) {
+      e.currentTarget.classList.remove('dragging');
+      document.querySelectorAll('.cell-group').forEach(el => el.classList.remove('drag-over'));
+      dragState = { type: null, sourceId: null, sourceGroupId: null };
+    }
+
+    function handleGroupDragOver(e) {
+      if (dragState.type !== 'group') return;
+      e.preventDefault();
+      e.currentTarget.classList.add('drag-over');
+    }
+
+    function handleGroupDragLeave(e) {
+      e.currentTarget.classList.remove('drag-over');
+    }
+
+    function handleGroupDrop(e) {
+      e.preventDefault();
+      e.currentTarget.classList.remove('drag-over');
+      if (dragState.type !== 'group') return;
+
+      const targetGroupId = e.currentTarget.dataset.groupId;
+      if (targetGroupId === dragState.sourceId) return;
+
+      const sourceIdx = SELAH_DATA.groups.findIndex(g => g.id === dragState.sourceId);
+      const targetIdx = SELAH_DATA.groups.findIndex(g => g.id === targetGroupId);
+
+      if (sourceIdx !== -1 && targetIdx !== -1) {
+        const [removed] = SELAH_DATA.groups.splice(sourceIdx, 1);
+        SELAH_DATA.groups.splice(targetIdx, 0, removed);
+        render();
+        saveData();
+      }
+    }
+
+    // Task drag handlers
+    function handleTaskDragStart(e) {
+      dragState.type = 'task';
+      dragState.sourceId = e.currentTarget.dataset.taskId;
+      dragState.sourceGroupId = e.currentTarget.dataset.groupId;
+      e.currentTarget.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function handleTaskDragEnd(e) {
+      e.currentTarget.classList.remove('dragging');
+      document.querySelectorAll('.cell-group').forEach(el => el.classList.remove('drag-over'));
+      dragState = { type: null, sourceId: null, sourceGroupId: null };
+    }
+
+    function handleTaskDragOver(e) {
+      if (dragState.type !== 'task') return;
+      e.preventDefault();
+      e.currentTarget.classList.add('drag-over');
+    }
+
+    function handleTaskDragLeave(e) {
+      e.currentTarget.classList.remove('drag-over');
+    }
+
+    function handleTaskDrop(e) {
+      e.preventDefault();
+      e.currentTarget.classList.remove('drag-over');
+      if (dragState.type !== 'task') return;
+
+      const targetGroupId = e.currentTarget.dataset.groupId;
+      if (targetGroupId === dragState.sourceGroupId) return;
+
+      // Find and move task
+      const sourceGroup = SELAH_DATA.groups.find(g => g.id === dragState.sourceGroupId);
+      const targetGroup = SELAH_DATA.groups.find(g => g.id === targetGroupId);
+
+      if (sourceGroup && targetGroup) {
+        const taskIdx = sourceGroup.tasks.findIndex(t => t.id === dragState.sourceId);
+        if (taskIdx !== -1) {
+          const [task] = sourceGroup.tasks.splice(taskIdx, 1);
+          targetGroup.tasks.push(task);
+          // Sort by start date
+          targetGroup.tasks.sort((a, b) => {
+            if (!a.start) return 1;
+            if (!b.start) return -1;
+            return new Date(a.start) - new Date(b.start);
+          });
+          render();
+          saveData();
+        }
+      }
+    }
+
+    // Status menu handlers
+    function handleTaskBarContextMenu(e) {
+      e.preventDefault();
+      const taskId = e.currentTarget.dataset.taskId;
+      const menu = document.getElementById('status-menu');
+
+      // Update active state
+      const task = getAllTasks().find(t => t.id === taskId);
+      menu.querySelectorAll('.status-menu-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.status === task.status);
+      });
+
+      menu.dataset.taskId = taskId;
+      menu.style.left = `${e.clientX}px`;
+      menu.style.top = `${e.clientY}px`;
+      menu.classList.add('visible');
+    }
+
+    // Resize handlers
+    function handleResizeStart(e) {
+      e.stopPropagation();
+      const taskBar = e.target.closest('.task-bar');
+      resizeState = {
+        active: true,
+        taskId: taskBar.dataset.taskId,
+        handle: e.target.dataset.handle,
+        startX: e.clientX
+      };
+
+      document.addEventListener('mousemove', handleResizeMove);
+      document.addEventListener('mouseup', handleResizeEnd);
+    }
+
+    function handleResizeMove(e) {
+      if (!resizeState.active) return;
+      // Visual feedback while dragging
+    }
+
+    function handleResizeEnd(e) {
+      if (!resizeState.active) return;
+
+      const deltaX = e.clientX - resizeState.startX;
+      const cellWidth = state.view === 'week' ? 80 : (state.displayMode === 'week' ? 16 : 21);
+      const daysDelta = Math.round(deltaX / cellWidth);
+
+      if (daysDelta !== 0) {
+        const task = findTaskById(resizeState.taskId);
+        if (task && task.start && task.end) {
+          const startDate = new Date(task.start);
+          const endDate = new Date(task.end);
+
+          if (resizeState.handle === 'start') {
+            startDate.setDate(startDate.getDate() + daysDelta);
+            if (startDate <= endDate) {
+              task.start = startDate.toISOString().split('T')[0];
+            }
+          } else {
+            endDate.setDate(endDate.getDate() + daysDelta);
+            if (endDate >= startDate) {
+              task.end = endDate.toISOString().split('T')[0];
+            }
+          }
+          render();
+          saveData();
+        }
+      }
+
+      resizeState = { active: false, taskId: null, handle: null, startX: null };
+      document.removeEventListener('mousemove', handleResizeMove);
+      document.removeEventListener('mouseup', handleResizeEnd);
+    }
+
+    function findTaskById(taskId) {
+      for (const group of SELAH_DATA.groups) {
+        const task = group.tasks.find(t => t.id === taskId);
+        if (task) return task;
+      }
+      return null;
+    }
+
+    // Add new group
+    function addNewGroup() {
+      const groupId = 'group-' + Date.now();
+      const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#ef4444'];
+      const color = colors[SELAH_DATA.groups.length % colors.length];
+
+      SELAH_DATA.groups.push({
+        id: groupId,
+        name: '新群組',
+        color: color,
+        tasks: []
+      });
+
+      render();
+
+      // Make the new group name editable
+      setTimeout(() => {
+        const groupCell = document.querySelector(`[data-group-id="${groupId}"] .group-label span:last-child`);
+        if (groupCell) {
+          makeEditable(groupCell, (newName) => {
+            const group = SELAH_DATA.groups.find(g => g.id === groupId);
+            if (group) {
+              group.name = newName || '新群組';
+              render();
+              saveData();
+            }
+          });
+        }
+      }, 100);
+    }
+
+    // Add new task
+    function addNewTask() {
+      if (SELAH_DATA.groups.length === 0) {
+        alert('請先新增群組');
+        return;
+      }
+
+      const taskId = 'task-' + Date.now();
+      const today = state.today.toISOString().split('T')[0];
+
+      // Add to first group by default
+      const firstGroup = SELAH_DATA.groups[0];
+      firstGroup.tasks.push({
+        id: taskId,
+        name: '新專案',
+        start: today,
+        end: today,
+        status: 'not_started',
+        note: ''
+      });
+
+      render();
+
+      // Make the new task name editable
+      setTimeout(() => {
+        const taskCell = document.querySelector(`[data-task-id="${taskId}"] .task-name`);
+        if (taskCell) {
+          makeEditable(taskCell, (newName) => {
+            const task = findTaskById(taskId);
+            if (task) {
+              task.name = newName || '新專案';
+              render();
+              saveData();
+            }
+          });
+        }
+      }, 100);
+    }
+
+    function makeEditable(element, onSave) {
+      const originalText = element.textContent;
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'inline-input';
+      input.value = originalText;
+
+      element.textContent = '';
+      element.appendChild(input);
+      input.focus();
+      input.select();
+
+      const save = () => {
+        const newValue = input.value.trim();
+        element.textContent = newValue || originalText;
+        onSave(newValue);
+      };
+
+      input.addEventListener('blur', save);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          input.blur();
+        } else if (e.key === 'Escape') {
+          element.textContent = originalText;
+        }
+      });
+    }
+
+    // Save data (log to console for now - in real app would save to server/localStorage)
+    function saveData() {
+      console.log('Data updated:', SELAH_DATA);
+      // In a real app, save to localStorage or server:
+      // localStorage.setItem('selahData', JSON.stringify(SELAH_DATA));
     }
 
     function showTooltip(e, task) {
@@ -1016,6 +1478,33 @@
     document.getElementById('week-select').addEventListener('change', (e) => {
       state.selectedWeek = parseInt(e.target.value);
       render();
+    });
+
+    // Status menu click handlers
+    document.getElementById('status-menu').addEventListener('click', (e) => {
+      const item = e.target.closest('.status-menu-item');
+      if (!item) return;
+
+      const menu = document.getElementById('status-menu');
+      const taskId = menu.dataset.taskId;
+      const newStatus = item.dataset.status;
+
+      const task = findTaskById(taskId);
+      if (task) {
+        task.status = newStatus;
+        render();
+        saveData();
+      }
+
+      menu.classList.remove('visible');
+    });
+
+    // Close status menu on click outside
+    document.addEventListener('click', (e) => {
+      const menu = document.getElementById('status-menu');
+      if (!menu.contains(e.target) && !e.target.closest('.task-bar')) {
+        menu.classList.remove('visible');
+      }
     });
 
     // Initialize
