@@ -162,7 +162,8 @@ const SELAH_DATA = {
 // 狀態配置
 const STATUS_CONFIG = {
   in_progress: { label: "運行中", color: "#3b82f6", icon: "🔵" },
-  background: { label: "背景執行", color: "#3b82f6", icon: "🔷" }
+  background: { label: "背景執行", color: "#3b82f6", icon: "🔷" },
+  pending: { label: "待安排", color: "#9ca3af", icon: "⚪" }
 };
 
 // Export for module usage

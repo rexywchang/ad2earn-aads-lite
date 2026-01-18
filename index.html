@@ -864,6 +864,7 @@
   <div class="status-menu" id="status-menu">
     <div class="status-menu-item" data-status="in_progress">🔵 運行中</div>
     <div class="status-menu-item" data-status="background">🔷 背景執行</div>
+    <div class="status-menu-item" data-status="pending">⚪ 待安排</div>
   </div>
 
   <div class="delete-zone" id="delete-zone">
@@ -895,6 +896,7 @@
           <select id="modal-status">
             <option value="in_progress">運行中</option>
             <option value="background">背景執行</option>
+            <option value="pending">待安排</option>
           </select>
         </div>
         <div class="modal-field">
@@ -1215,7 +1217,7 @@
             endCell = Math.floor((taskEnd - rangeStart) / (24 * 60 * 60 * 1000));
           }
 
-          if (i === startCell) {
+          if (i === startCell && task.status !== 'pending') {
             const barWidth = (endCell - startCell + 1) * cellWidth - 4;
             const isBackground = task.status === 'background';
             cellContent += `<div class="task-bar ${task.status} ${isBackground ? 'background' : ''}"
@@ -1259,7 +1261,7 @@
             const startDay = Math.floor((effectiveStart - weekStart) / (24 * 60 * 60 * 1000));
             const endDay = Math.floor((effectiveEnd - weekStart) / (24 * 60 * 60 * 1000));
 
-            if (i === startDay) {
+            if (i === startDay && task.status !== 'pending') {
               const barWidth = (endDay - startDay + 1) * cellWidth - 4;
               const isBackground = task.status === 'background';
               cellContent += `<div class="task-bar ${task.status} ${isBackground ? 'background' : ''}"
