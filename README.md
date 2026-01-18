@@ -19,22 +19,25 @@
 
 ## 使用方式
 
-1. 編輯 `data.js` 設定專案數據
-2. 推送到 GitHub，自動部署至 GitHub Pages
+1. 在網頁上直接編輯（拖放、新增、修改）
+2. 點擊 **📋 Copy** 複製 JSON
+3. 貼上到 `data.json` 並 commit
+4. 點擊 **🔄 Sync** 從 `data.json` 重新載入
 
 ## 數據格式
 
-```javascript
+```json
 {
-  id: "task-id",
-  name: "任務名稱",
-  start: "2026-01-20",
-  end: "2026-01-24",
-  status: "in_progress",  // completed / in_progress / not_started
-  milestone: "2026-01-22",
-  note: "備註"
+  "id": "task-id",
+  "name": "任務名稱",
+  "start": "2026-01-20",
+  "end": "2026-01-24",
+  "status": "in_progress",
+  "note": "備註"
 }
 ```
+
+狀態：`in_progress`（運行中）、`background`（背景執行）、`pending`（待安排）
 
 ## 技術
 

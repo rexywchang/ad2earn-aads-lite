@@ -831,7 +831,8 @@
       <span id="today-display">2026-01-18</span>
     </div>
     <div class="control-group" style="margin-left: auto;">
-      <button class="save-btn" id="export-btn" onclick="exportData()" title="匯出 data.js">📤 Export</button>
+      <button class="save-btn" id="sync-btn" onclick="syncFromFile()" title="從 data.json 重新載入（清除本地修改）">🔄 Sync</button>
+      <button class="save-btn" id="export-btn" onclick="exportData()" title="複製 JSON 到剪貼簿">📋 Copy</button>
     </div>
   </div>
 
@@ -911,8 +912,17 @@
     </div>
   </div>
 
-  <script src="data.js"></script>
   <script>
+    // Data will be loaded from data.json
+    let SELAH_DATA = { meta: {}, groups: [] };
+
+    // Status configuration
+    const STATUS_CONFIG = {
+      in_progress: { label: "運行中", color: "#3b82f6", icon: "🔵" },
+      background: { label: "背景執行", color: "#3b82f6", icon: "🔷" },
+      pending: { label: "待安排", color: "#9ca3af", icon: "⚪" }
+    };
+
     const state = {
       view: 'year',
       displayMode: 'day',
@@ -1740,58 +1750,84 @@
       console.log('Data saved to localStorage');
     }
 
-    // Load data from localStorage
-    function loadData() {
+    // Load data from data.json, then override with localStorage if exists
+    async function loadData() {
+      // First, load base data from data.json
+      try {
+        const response = await fetch('data.json');
+        const jsonData = await response.json();
+        SELAH_DATA.meta = jsonData.meta;
+        SELAH_DATA.groups = jsonData.groups;
+        console.log('Base data loaded from data.json');
+      } catch (e) {
+        console.error('Failed to load data.json:', e);
+      }
+
+      // Then, override with localStorage if exists
       const saved = localStorage.getItem('selahData');
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
           SELAH_DATA.groups = parsed.groups;
           SELAH_DATA.meta = parsed.meta;
-          console.log('Data loaded from localStorage');
+          console.log('Data overridden from localStorage');
         } catch (e) {
           console.error('Failed to load saved data:', e);
         }
       }
     }
 
-    // Export data.js
-    function exportData() {
-      const dataContent = generateDataJS();
-      const blob = new Blob([dataContent], { type: 'application/javascript' });
-      const url = URL.createObjectURL(blob);
+    // Sync from data.json (clear localStorage and reload)
+    async function syncFromFile() {
+      if (!confirm('確定要從 data.json 重新載入嗎？本地修改將被覆蓋。')) return;
 
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'data.js';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      localStorage.removeItem('selahData');
 
-      // Visual feedback
-      const btn = document.getElementById('export-btn');
-      btn.textContent = '✓ Downloaded';
-      setTimeout(() => {
-        btn.textContent = '📤 Export';
-      }, 2000);
+      try {
+        const response = await fetch('data.json?' + Date.now()); // bust cache
+        const jsonData = await response.json();
+        SELAH_DATA.meta = jsonData.meta;
+        SELAH_DATA.groups = jsonData.groups;
+
+        const btn = document.getElementById('sync-btn');
+        btn.textContent = '✓ Synced!';
+        setTimeout(() => {
+          btn.textContent = '🔄 Sync';
+        }, 2000);
+
+        render();
+      } catch (e) {
+        alert('無法載入 data.json: ' + e.message);
+      }
     }
 
-    function generateDataJS() {
-      const dataStr = JSON.stringify(SELAH_DATA, null, 2);
-      const statusStr = JSON.stringify(STATUS_CONFIG, null, 2);
+    // Export as JSON (copy to clipboard)
+    function exportData() {
+      const exportObj = {
+        meta: SELAH_DATA.meta,
+        groups: SELAH_DATA.groups,
+        exportedAt: new Date().toISOString()
+      };
+      const jsonStr = JSON.stringify(exportObj, null, 2);
 
-      return `// Selah 專案數據
-const SELAH_DATA = ${dataStr};
-
-// 狀態配置
-const STATUS_CONFIG = ${statusStr};
-
-// Export for module usage
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { SELAH_DATA, STATUS_CONFIG };
-}
-`;
+      navigator.clipboard.writeText(jsonStr).then(() => {
+        const btn = document.getElementById('export-btn');
+        btn.textContent = '✓ Copied!';
+        setTimeout(() => {
+          btn.textContent = '📋 Copy';
+        }, 2000);
+      }).catch(() => {
+        // Fallback: download as JSON file
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'selah-data.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
     }
 
     // Modal functions
@@ -2010,11 +2046,14 @@ if (typeof module !== 'undefined' && module.exports) {
     });
 
     // Initialize
-    loadData(); // Load saved data from localStorage
-    document.getElementById('today-display').textContent = state.today.toLocaleDateString('zh-TW');
-    generateWeekOptions();
-    setupDeleteZone();
-    render();
+    async function init() {
+      await loadData(); // Load data from data.json, then localStorage
+      document.getElementById('today-display').textContent = state.today.toLocaleDateString('zh-TW');
+      generateWeekOptions();
+      setupDeleteZone();
+      render();
+    }
+    init();
   </script>
 </body>
 </html>
