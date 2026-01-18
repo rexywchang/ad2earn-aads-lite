@@ -315,12 +315,175 @@
       width: auto;
     }
 
-    .new-row {
-      background: var(--bg-tertiary);
+    /* Info icon */
+    .info-icon {
+      cursor: pointer;
+      opacity: 0.5;
+      font-size: 0.5rem;
+      margin-left: 4px;
+      transition: opacity 0.2s;
     }
 
-    .new-row td {
-      background: rgba(99, 102, 241, 0.1);
+    .info-icon:hover {
+      opacity: 1;
+    }
+
+    /* Edit Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+
+    .modal-overlay.visible {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      min-width: 300px;
+      max-width: 400px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .modal-title {
+      font-weight: 600;
+      font-size: 0.7rem;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0;
+    }
+
+    .modal-close:hover {
+      color: var(--text-primary);
+    }
+
+    .modal-body {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .modal-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .modal-field label {
+      font-size: 0.55rem;
+      color: var(--text-secondary);
+    }
+
+    .modal-field input,
+    .modal-field select,
+    .modal-field textarea {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      color: var(--text-primary);
+      padding: 6px 8px;
+      font-size: 0.55rem;
+    }
+
+    .modal-field textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .modal-field input:focus,
+    .modal-field select:focus,
+    .modal-field textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .modal-btn {
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 0.55rem;
+      cursor: pointer;
+      border: 1px solid var(--border-color);
+    }
+
+    .modal-btn-cancel {
+      background: transparent;
+      color: var(--text-secondary);
+    }
+
+    .modal-btn-save {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    .modal-btn:hover {
+      opacity: 0.8;
+    }
+
+    /* Delete Zone */
+    .delete-zone {
+      position: fixed;
+      bottom: 50px;
+      left: 16px;
+      width: 80px;
+      height: 80px;
+      background: var(--bg-tertiary);
+      border: 2px dashed var(--border-color);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.5rem;
+      color: var(--text-secondary);
+      transition: all 0.2s;
+      z-index: 100;
+    }
+
+    .delete-zone-icon {
+      font-size: 1.2rem;
+    }
+
+    .delete-zone.drag-over {
+      background: #ef4444;
+      border-color: #ef4444;
+      color: white;
+      transform: scale(1.1);
     }
 
     /* Day cells */
@@ -673,6 +836,56 @@
     <div class="status-menu-item" data-status="completed">🟢 已完成</div>
   </div>
 
+  <div class="delete-zone" id="delete-zone">
+    <span class="delete-zone-icon">🗑️</span>
+    <span>刪除</span>
+  </div>
+
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">編輯專案</span>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-field">
+          <label>名稱</label>
+          <input type="text" id="modal-name">
+        </div>
+        <div class="modal-field">
+          <label>開始日期</label>
+          <input type="date" id="modal-start">
+        </div>
+        <div class="modal-field">
+          <label>結束日期</label>
+          <input type="date" id="modal-end">
+        </div>
+        <div class="modal-field">
+          <label>里程碑</label>
+          <input type="date" id="modal-milestone">
+        </div>
+        <div class="modal-field">
+          <label>狀態</label>
+          <select id="modal-status">
+            <option value="not_started">尚未開始</option>
+            <option value="in_progress">進行中</option>
+            <option value="background">背景執行</option>
+            <option value="paused">暫停中</option>
+            <option value="completed">已完成</option>
+          </select>
+        </div>
+        <div class="modal-field">
+          <label>備註</label>
+          <textarea id="modal-note"></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-cancel" onclick="closeModal()">取消</button>
+        <button class="modal-btn modal-btn-save" onclick="saveModal()">儲存</button>
+      </div>
+    </div>
+  </div>
+
   <script src="data.js"></script>
   <script>
     const state = {
@@ -849,6 +1062,7 @@
               <span class="task-color-dot" style="background: ${group.color}"></span>
               <span class="task-status">${STATUS_CONFIG[task.status].icon}</span>
               <span class="task-name">${task.name}</span>
+              <span class="info-icon" data-task-id="${task.id}" onclick="openModal('${task.id}')">ℹ</span>
             </div>
           </td>`;
 
@@ -908,6 +1122,7 @@
               <span class="task-color-dot" style="background: ${group.color}"></span>
               <span class="task-status">${STATUS_CONFIG[task.status].icon}</span>
               <span class="task-name">${task.name}</span>
+              <span class="info-icon" data-task-id="${task.id}" onclick="openModal('${task.id}')">ℹ</span>
             </div>
           </td>`;
 
@@ -1134,6 +1349,49 @@
       document.querySelectorAll('.drag-handle').forEach(el => {
         el.addEventListener('mousedown', handleResizeStart);
       });
+
+      // Double-click to edit group name
+      document.querySelectorAll('.cell-group').forEach(el => {
+        el.addEventListener('dblclick', handleGroupDblClick);
+      });
+
+      // Double-click to edit task name
+      document.querySelectorAll('.cell-task').forEach(el => {
+        el.addEventListener('dblclick', handleTaskDblClick);
+      });
+    }
+
+    // Double-click handlers
+    function handleGroupDblClick(e) {
+      if (e.target.classList.contains('inline-input')) return;
+      const groupId = e.currentTarget.dataset.groupId;
+      const groupNameEl = e.currentTarget.querySelector('.group-name');
+      if (groupNameEl) {
+        makeEditable(groupNameEl, (newName) => {
+          const group = SELAH_DATA.groups.find(g => g.id === groupId);
+          if (group && newName) {
+            group.name = newName;
+            render();
+            saveData();
+          }
+        });
+      }
+    }
+
+    function handleTaskDblClick(e) {
+      if (e.target.classList.contains('inline-input') || e.target.classList.contains('info-icon')) return;
+      const taskId = e.currentTarget.dataset.taskId;
+      const taskNameEl = e.currentTarget.querySelector('.task-name');
+      if (taskNameEl) {
+        makeEditable(taskNameEl, (newName) => {
+          const task = findTaskById(taskId);
+          if (task && newName) {
+            task.name = newName;
+            render();
+            saveData();
+          }
+        });
+      }
     }
 
     // Group drag handlers
@@ -1440,6 +1698,95 @@
       // localStorage.setItem('selahData', JSON.stringify(SELAH_DATA));
     }
 
+    // Modal functions
+    let currentEditTaskId = null;
+
+    function openModal(taskId) {
+      currentEditTaskId = taskId;
+      const task = findTaskById(taskId);
+      if (!task) return;
+
+      document.getElementById('modal-name').value = task.name || '';
+      document.getElementById('modal-start').value = task.start || '';
+      document.getElementById('modal-end').value = task.end || '';
+      document.getElementById('modal-milestone').value = task.milestone || '';
+      document.getElementById('modal-status').value = task.status || 'not_started';
+      document.getElementById('modal-note').value = task.note || '';
+
+      document.getElementById('modal-overlay').classList.add('visible');
+    }
+
+    function closeModal() {
+      currentEditTaskId = null;
+      document.getElementById('modal-overlay').classList.remove('visible');
+    }
+
+    function saveModal() {
+      if (!currentEditTaskId) return;
+      const task = findTaskById(currentEditTaskId);
+      if (!task) return;
+
+      task.name = document.getElementById('modal-name').value;
+      task.start = document.getElementById('modal-start').value || null;
+      task.end = document.getElementById('modal-end').value || null;
+      task.milestone = document.getElementById('modal-milestone').value || null;
+      task.status = document.getElementById('modal-status').value;
+      task.note = document.getElementById('modal-note').value;
+
+      closeModal();
+      render();
+      saveData();
+    }
+
+    // Delete zone handlers
+    function setupDeleteZone() {
+      const deleteZone = document.getElementById('delete-zone');
+
+      deleteZone.addEventListener('dragover', (e) => {
+        if (dragState.type) {
+          e.preventDefault();
+          deleteZone.classList.add('drag-over');
+        }
+      });
+
+      deleteZone.addEventListener('dragleave', () => {
+        deleteZone.classList.remove('drag-over');
+      });
+
+      deleteZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        deleteZone.classList.remove('drag-over');
+
+        if (dragState.type === 'group') {
+          // Delete group
+          const groupIdx = SELAH_DATA.groups.findIndex(g => g.id === dragState.sourceId);
+          if (groupIdx !== -1) {
+            if (confirm(`確定要刪除群組「${SELAH_DATA.groups[groupIdx].name}」及其所有專案嗎？`)) {
+              SELAH_DATA.groups.splice(groupIdx, 1);
+              render();
+              saveData();
+            }
+          }
+        } else if (dragState.type === 'task') {
+          // Delete task
+          const sourceGroup = SELAH_DATA.groups.find(g => g.id === dragState.sourceGroupId);
+          if (sourceGroup) {
+            const taskIdx = sourceGroup.tasks.findIndex(t => t.id === dragState.sourceId);
+            if (taskIdx !== -1) {
+              const taskName = sourceGroup.tasks[taskIdx].name;
+              if (confirm(`確定要刪除專案「${taskName}」嗎？`)) {
+                sourceGroup.tasks.splice(taskIdx, 1);
+                render();
+                saveData();
+              }
+            }
+          }
+        }
+
+        dragState = { type: null, sourceId: null, sourceGroupId: null };
+      });
+    }
+
     function showTooltip(e, task) {
       const tooltip = document.getElementById('tooltip');
       tooltip.innerHTML = `
@@ -1513,9 +1860,17 @@
       }
     });
 
+    // Close modal on overlay click
+    document.getElementById('modal-overlay').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('modal-overlay')) {
+        closeModal();
+      }
+    });
+
     // Initialize
     document.getElementById('today-display').textContent = state.today.toLocaleDateString('zh-TW');
     generateWeekOptions();
+    setupDeleteZone();
     render();
   </script>
 </body>
