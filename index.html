@@ -584,6 +584,11 @@
       cursor: grabbing;
     }
 
+    .task-bar.dragging {
+      opacity: 0.6;
+      cursor: grabbing;
+    }
+
     .task-bar.completed {
       opacity: 0.7;
     }
@@ -1610,11 +1615,13 @@
 
       e.preventDefault();
       const taskBar = e.currentTarget;
+      taskBar.classList.add('dragging');
       resizeState = {
         active: true,
         taskId: taskBar.dataset.taskId,
         handle: 'move',
-        startX: e.clientX
+        startX: e.clientX,
+        element: taskBar
       };
 
       document.addEventListener('mousemove', handleResizeMove);
@@ -1626,11 +1633,13 @@
       e.stopPropagation();
       e.preventDefault();
       const taskBar = e.target.closest('.task-bar');
+      taskBar.classList.add('dragging');
       resizeState = {
         active: true,
         taskId: taskBar.dataset.taskId,
         handle: e.target.dataset.handle,
-        startX: e.clientX
+        startX: e.clientX,
+        element: taskBar
       };
 
       document.addEventListener('mousemove', handleResizeMove);
@@ -1644,6 +1653,11 @@
 
     function handleResizeEnd(e) {
       if (!resizeState.active) return;
+
+      // Remove dragging visual effect
+      if (resizeState.element) {
+        resizeState.element.classList.remove('dragging');
+      }
 
       const deltaX = e.clientX - resizeState.startX;
       const cellWidth = state.view === 'week' ? 80 : (state.displayMode === 'week' ? 16 : 21);
@@ -1677,7 +1691,7 @@
         }
       }
 
-      resizeState = { active: false, taskId: null, handle: null, startX: null };
+      resizeState = { active: false, taskId: null, handle: null, startX: null, element: null };
       document.removeEventListener('mousemove', handleResizeMove);
       document.removeEventListener('mouseup', handleResizeEnd);
     }
