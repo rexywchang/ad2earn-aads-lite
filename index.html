@@ -562,6 +562,26 @@
       background: rgba(245, 158, 11, 0.1);
     }
 
+    /* Frozen columns */
+    .cell-group, .col-group {
+      position: sticky;
+      left: 0;
+      z-index: 10;
+      background: var(--bg-secondary);
+    }
+
+    .cell-task, .col-task {
+      position: sticky;
+      left: var(--group-col-width);
+      z-index: 10;
+      background: var(--bg-secondary);
+    }
+
+    .gantt-table thead th.col-group,
+    .gantt-table thead th.col-task {
+      z-index: 25;
+    }
+
     /* Stats Row */
     .gantt-table tfoot {
       position: sticky;
@@ -571,26 +591,56 @@
 
     .stats-row td {
       background: var(--bg-secondary);
-      border-top: 2px solid var(--border-color);
       font-size: 0.5rem;
       color: var(--text-secondary);
       text-align: center;
       padding: 2px 0;
+      height: 18px;
     }
 
-    .stats-row .stat-cell {
+    .stats-row:first-child td {
+      border-top: none;
+    }
+
+    .stats-row .stat-label {
+      text-align: right;
+      padding-right: 8px;
+    }
+
+    .stats-row.in-progress td {
+      color: #3b82f6;
+    }
+
+    .stats-row.background td {
+      color: #3b82f6;
+      opacity: 0.7;
+    }
+
+    /* Chart Row */
+    .chart-row td {
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border-color);
+      padding: 0;
+      height: 60px;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 60px;
+      width: 100%;
+    }
+
+    .chart-y-axis {
+      position: absolute;
+      right: 4px;
+      top: 0;
+      height: 100%;
       display: flex;
-      justify-content: center;
-      gap: 6px;
-    }
-
-    .stats-row .stat-in-progress {
-      color: #3b82f6;
-    }
-
-    .stats-row .stat-background {
-      color: #3b82f6;
-      opacity: 0.6;
+      flex-direction: column;
+      justify-content: space-between;
+      font-size: 0.4rem;
+      color: var(--text-secondary);
+      padding: 4px 0;
     }
 
     /* Task Bar */
@@ -1099,6 +1149,66 @@
       return { inProgress, background };
     }
 
+    // Draw line chart for stats
+    function drawChart(canvasId, yAxisId, statsData) {
+      const canvas = document.getElementById(canvasId);
+      const yAxisEl = document.getElementById(yAxisId);
+      if (!canvas) return;
+
+      const ctx = canvas.getContext('2d');
+      const rect = canvas.getBoundingClientRect();
+
+      // Set canvas size for high DPI
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+
+      const width = rect.width;
+      const height = rect.height;
+      const padding = { top: 5, bottom: 5, left: 0, right: 0 };
+
+      // Find max value for Y axis
+      const maxVal = Math.max(
+        1,
+        ...statsData.map(s => Math.max(s.inProgress, s.background))
+      );
+
+      // Update Y axis labels
+      if (yAxisEl) {
+        yAxisEl.innerHTML = `<span>${maxVal}</span><span>${Math.round(maxVal/2)}</span><span>0</span>`;
+      }
+
+      const chartWidth = width - padding.left - padding.right;
+      const chartHeight = height - padding.top - padding.bottom;
+
+      // Draw lines
+      const drawLine = (data, color, opacity = 1) => {
+        if (data.length === 0) return;
+
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.globalAlpha = opacity;
+        ctx.lineWidth = 1.5;
+
+        data.forEach((val, i) => {
+          const x = padding.left + (i / (data.length - 1 || 1)) * chartWidth;
+          const y = padding.top + chartHeight - (val / maxVal) * chartHeight;
+
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      };
+
+      // Draw in-progress line
+      drawLine(statsData.map(s => s.inProgress), '#3b82f6', 1);
+      // Draw background line
+      drawLine(statsData.map(s => s.background), '#3b82f6', 0.5);
+    }
+
     function render() {
       const table = document.getElementById('gantt-table');
 
@@ -1192,12 +1302,10 @@
 
       html += '</tbody>';
 
-      // Stats row
-      html += '<tfoot><tr class="stats-row">';
-      html += '<td colspan="2" style="text-align: right; padding-right: 8px;">統計</td>';
-
+      // Collect stats for chart and rows
       const mode = state.displayMode;
       const numCells = mode === 'week' ? Math.ceil(totalDays / 7) : (mode === 'biweek' ? Math.ceil(totalDays / 14) : (mode === 'month' ? 12 : totalDays));
+      const statsData = [];
 
       for (let i = 0; i < numCells; i++) {
         const cellStart = new Date(start);
@@ -1219,19 +1327,37 @@
           cellEnd = new Date(cellStart);
         }
 
-        const stats = countTasksInRange(cellStart, cellEnd);
-        const hasStats = stats.inProgress > 0 || stats.background > 0;
-
-        html += `<td><div class="stat-cell">`;
-        if (hasStats) {
-          if (stats.inProgress > 0) html += `<span class="stat-in-progress">${stats.inProgress}</span>`;
-          if (stats.background > 0) html += `<span class="stat-background">${stats.background}</span>`;
-        }
-        html += `</div></td>`;
+        statsData.push(countTasksInRange(cellStart, cellEnd));
       }
 
-      html += '</tr></tfoot>';
+      // Chart row
+      html += '<tfoot>';
+      html += '<tr class="chart-row">';
+      html += `<td class="col-task" colspan="2"><div class="chart-container"><div class="chart-y-axis" id="chart-y-axis-year"></div></div></td>`;
+      html += `<td colspan="${numCells}"><canvas id="stats-chart-year" style="width: 100%; height: 60px;"></canvas></td>`;
+      html += '</tr>';
+
+      // In-progress row
+      html += '<tr class="stats-row in-progress">';
+      html += '<td class="col-group"></td><td class="col-task stat-label">🔵 執行中</td>';
+      statsData.forEach(s => {
+        html += `<td>${s.inProgress || ''}</td>`;
+      });
+      html += '</tr>';
+
+      // Background row
+      html += '<tr class="stats-row background">';
+      html += '<td class="col-group"></td><td class="col-task stat-label">🔷 背景</td>';
+      statsData.forEach(s => {
+        html += `<td>${s.background || ''}</td>`;
+      });
+      html += '</tr>';
+
+      html += '</tfoot>';
       table.innerHTML = html;
+
+      // Draw chart
+      drawChart('stats-chart-year', 'chart-y-axis-year', statsData);
     }
 
     function renderWeekView(table) {
@@ -1293,28 +1419,43 @@
 
       html += '</tbody>';
 
-      // Stats row for week view
-      html += '<tfoot><tr class="stats-row">';
-      html += '<td colspan="2" style="text-align: right; padding-right: 8px;">統計</td>';
-
+      // Collect stats for week view
+      const statsData = [];
       for (let i = 0; i < 7; i++) {
         const dayStart = new Date(start);
         dayStart.setDate(dayStart.getDate() + i);
         const dayEnd = new Date(dayStart);
-
-        const stats = countTasksInRange(dayStart, dayEnd);
-        const hasStats = stats.inProgress > 0 || stats.background > 0;
-
-        html += `<td><div class="stat-cell">`;
-        if (hasStats) {
-          if (stats.inProgress > 0) html += `<span class="stat-in-progress">${stats.inProgress}</span>`;
-          if (stats.background > 0) html += `<span class="stat-background">${stats.background}</span>`;
-        }
-        html += `</div></td>`;
+        statsData.push(countTasksInRange(dayStart, dayEnd));
       }
 
-      html += '</tr></tfoot>';
+      // Chart row
+      html += '<tfoot>';
+      html += '<tr class="chart-row">';
+      html += `<td class="col-task" colspan="2"><div class="chart-container"><div class="chart-y-axis" id="chart-y-axis-week"></div></div></td>`;
+      html += `<td colspan="7"><canvas id="stats-chart-week" style="width: 100%; height: 60px;"></canvas></td>`;
+      html += '</tr>';
+
+      // In-progress row
+      html += '<tr class="stats-row in-progress">';
+      html += '<td class="col-group"></td><td class="col-task stat-label">🔵 執行中</td>';
+      statsData.forEach(s => {
+        html += `<td>${s.inProgress || ''}</td>`;
+      });
+      html += '</tr>';
+
+      // Background row
+      html += '<tr class="stats-row background">';
+      html += '<td class="col-group"></td><td class="col-task stat-label">🔷 背景</td>';
+      statsData.forEach(s => {
+        html += `<td>${s.background || ''}</td>`;
+      });
+      html += '</tr>';
+
+      html += '</tfoot>';
       table.innerHTML = html;
+
+      // Draw chart
+      drawChart('stats-chart-week', 'chart-y-axis-week', statsData);
     }
 
     function renderDayCells(task, group, rangeStart, totalDays, mode) {
