@@ -162,7 +162,7 @@
       display: block;
     }
 
-    .save-btn, .settings-btn {
+    .save-btn {
       padding: 0.25rem 0.5rem;
       border: 1px solid var(--border-color);
       border-radius: 0.25rem;
@@ -173,19 +173,9 @@
       transition: all 0.2s;
     }
 
-    .save-btn:hover, .settings-btn:hover {
+    .save-btn:hover {
       background: var(--accent);
       border-color: var(--accent);
-    }
-
-    .save-btn.saving {
-      opacity: 0.5;
-      pointer-events: none;
-    }
-
-    .save-btn.saved {
-      background: #22c55e;
-      border-color: #22c55e;
     }
 
     /* Main Container */
@@ -841,8 +831,7 @@
       <span id="today-display">2026-01-18</span>
     </div>
     <div class="control-group" style="margin-left: auto;">
-      <button class="save-btn" id="save-btn" onclick="saveToGitHub()" title="儲存到 GitHub">💾 Save</button>
-      <button class="settings-btn" id="settings-btn" onclick="openSettings()" title="設定">⚙️</button>
+      <button class="save-btn" id="export-btn" onclick="exportData()" title="匯出 data.js">📤 Export</button>
     </div>
   </div>
 
@@ -880,35 +869,6 @@
   <div class="delete-zone" id="delete-zone">
     <span class="delete-zone-icon">🗑️</span>
     <span>刪除</span>
-  </div>
-
-  <div class="modal-overlay" id="settings-overlay">
-    <div class="modal">
-      <div class="modal-header">
-        <span class="modal-title">GitHub 設定</span>
-        <button class="modal-close" onclick="closeSettings()">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="modal-field">
-          <label>Repository（格式：owner/repo）</label>
-          <input type="text" id="settings-repo" placeholder="rexywchang/selah">
-        </div>
-        <div class="modal-field">
-          <label>Personal Access Token</label>
-          <input type="password" id="settings-token" placeholder="ghp_xxxxxxxxxxxx">
-        </div>
-        <div class="modal-field">
-          <label style="font-size: 0.5rem; color: var(--text-secondary);">
-            到 GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate new token<br>
-            勾選 repo 權限即可
-          </label>
-        </div>
-      </div>
-      <div class="modal-actions">
-        <button class="modal-btn modal-btn-cancel" onclick="closeSettings()">取消</button>
-        <button class="modal-btn modal-btn-save" onclick="saveSettings()">儲存</button>
-      </div>
-    </div>
   </div>
 
   <div class="modal-overlay" id="modal-overlay">
@@ -1793,103 +1753,26 @@
       }
     }
 
-    // GitHub Settings
-    function openSettings() {
-      const repo = localStorage.getItem('github_repo') || '';
-      const token = localStorage.getItem('github_token') || '';
-      document.getElementById('settings-repo').value = repo;
-      document.getElementById('settings-token').value = token;
-      document.getElementById('settings-overlay').classList.add('visible');
-    }
+    // Export data.js
+    function exportData() {
+      const dataContent = generateDataJS();
+      const blob = new Blob([dataContent], { type: 'application/javascript' });
+      const url = URL.createObjectURL(blob);
 
-    function closeSettings() {
-      document.getElementById('settings-overlay').classList.remove('visible');
-    }
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'data.js';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
 
-    function saveSettings() {
-      const repo = document.getElementById('settings-repo').value.trim();
-      const token = document.getElementById('settings-token').value.trim();
-      localStorage.setItem('github_repo', repo);
-      localStorage.setItem('github_token', token);
-      closeSettings();
-      alert('設定已儲存！');
-    }
-
-    // Save to GitHub
-    async function saveToGitHub() {
-      const repo = localStorage.getItem('github_repo');
-      const token = localStorage.getItem('github_token');
-
-      if (!repo || !token) {
-        alert('請先設定 GitHub Repository 和 Token');
-        openSettings();
-        return;
-      }
-
-      const saveBtn = document.getElementById('save-btn');
-      saveBtn.classList.add('saving');
-      saveBtn.textContent = '⏳ Saving...';
-
-      try {
-        // Generate data.js content
-        const dataContent = generateDataJS();
-
-        // Get current file SHA (required for update)
-        const getResponse = await fetch(`https://api.github.com/repos/${repo}/contents/data.js`, {
-          headers: {
-            'Authorization': `token ${token}`,
-            'Accept': 'application/vnd.github.v3+json'
-          }
-        });
-
-        let sha = null;
-        if (getResponse.ok) {
-          const fileData = await getResponse.json();
-          sha = fileData.sha;
-        }
-
-        // Update file
-        const updateBody = {
-          message: `Update data.js - ${new Date().toLocaleString('zh-TW')}`,
-          content: btoa(unescape(encodeURIComponent(dataContent))),
-          branch: 'main'
-        };
-
-        if (sha) {
-          updateBody.sha = sha;
-        }
-
-        const updateResponse = await fetch(`https://api.github.com/repos/${repo}/contents/data.js`, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `token ${token}`,
-            'Accept': 'application/vnd.github.v3+json',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(updateBody)
-        });
-
-        if (updateResponse.ok) {
-          saveBtn.classList.remove('saving');
-          saveBtn.classList.add('saved');
-          saveBtn.textContent = '✓ Saved';
-          setTimeout(() => {
-            saveBtn.classList.remove('saved');
-            saveBtn.textContent = '💾 Save';
-          }, 2000);
-        } else {
-          const error = await updateResponse.json();
-          throw new Error(error.message || 'Failed to save');
-        }
-      } catch (error) {
-        console.error('Save error:', error);
-        saveBtn.classList.remove('saving');
-        saveBtn.textContent = '❌ Error';
-        alert(`儲存失敗: ${error.message}`);
-        setTimeout(() => {
-          saveBtn.textContent = '💾 Save';
-        }, 2000);
-      }
+      // Visual feedback
+      const btn = document.getElementById('export-btn');
+      btn.textContent = '✓ Downloaded';
+      setTimeout(() => {
+        btn.textContent = '📤 Export';
+      }, 2000);
     }
 
     function generateDataJS() {
@@ -2121,13 +2004,6 @@ if (typeof module !== 'undefined' && module.exports) {
     document.getElementById('modal-overlay').addEventListener('click', (e) => {
       if (e.target === document.getElementById('modal-overlay')) {
         closeModal();
-      }
-    });
-
-    // Close settings on overlay click
-    document.getElementById('settings-overlay').addEventListener('click', (e) => {
-      if (e.target === document.getElementById('settings-overlay')) {
-        closeSettings();
       }
     });
 
