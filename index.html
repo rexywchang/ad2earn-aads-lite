@@ -14,6 +14,11 @@
       --border-color: #475569;
       --accent: #6366f1;
       --today: #f59e0b;
+      /* 縮小至 67% */
+      --base-font: 0.67rem;
+      --cell-width: 21px;
+      --cell-height: 21px;
+      --row-height: 24px;
     }
 
     * {
@@ -26,6 +31,7 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans TC', sans-serif;
       background: var(--bg-primary);
       color: var(--text-primary);
+      font-size: var(--base-font);
       min-height: 100vh;
     }
 
@@ -33,7 +39,7 @@
     .header {
       background: var(--bg-secondary);
       border-bottom: 1px solid var(--border-color);
-      padding: 1rem 2rem;
+      padding: 0.5rem 1rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -45,34 +51,34 @@
     .logo {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 0.5rem;
     }
 
     .logo h1 {
-      font-size: 1.5rem;
+      font-size: 1rem;
       font-weight: 600;
     }
 
     .logo .subtitle {
       color: var(--text-secondary);
-      font-size: 0.875rem;
+      font-size: 0.6rem;
     }
 
     /* Navigation */
     .nav-tabs {
       display: flex;
-      gap: 0.5rem;
+      gap: 0.3rem;
     }
 
     .nav-tab {
-      padding: 0.5rem 1rem;
+      padding: 0.3rem 0.6rem;
       border: 1px solid var(--border-color);
-      border-radius: 0.5rem;
+      border-radius: 0.3rem;
       background: transparent;
       color: var(--text-secondary);
       cursor: pointer;
       transition: all 0.2s;
-      font-size: 0.875rem;
+      font-size: 0.6rem;
     }
 
     .nav-tab:hover {
@@ -89,8 +95,8 @@
     /* Controls */
     .controls {
       display: flex;
-      gap: 1rem;
-      padding: 1rem 2rem;
+      gap: 0.6rem;
+      padding: 0.5rem 1rem;
       background: var(--bg-secondary);
       border-bottom: 1px solid var(--border-color);
       flex-wrap: wrap;
@@ -100,24 +106,24 @@
     .control-group {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.3rem;
     }
 
     .control-group label {
       color: var(--text-secondary);
-      font-size: 0.875rem;
+      font-size: 0.6rem;
     }
 
-    select, input[type="date"] {
-      padding: 0.375rem 0.75rem;
+    select {
+      padding: 0.2rem 0.4rem;
       border: 1px solid var(--border-color);
-      border-radius: 0.375rem;
+      border-radius: 0.25rem;
       background: var(--bg-tertiary);
       color: var(--text-primary);
-      font-size: 0.875rem;
+      font-size: 0.6rem;
     }
 
-    select:focus, input:focus {
+    select:focus {
       outline: none;
       border-color: var(--accent);
     }
@@ -125,56 +131,62 @@
     /* Main Container */
     .main-container {
       display: flex;
-      height: calc(100vh - 120px);
+      height: calc(100vh - 70px);
       overflow: hidden;
     }
 
     /* Task List (Left Panel) */
     .task-list {
-      width: 300px;
-      min-width: 300px;
+      width: 180px;
+      min-width: 180px;
       border-right: 1px solid var(--border-color);
-      overflow-y: auto;
       background: var(--bg-secondary);
+      display: flex;
+      flex-direction: column;
     }
 
     .task-list-header {
-      padding: 0.75rem 1rem;
+      padding: 0.4rem 0.6rem;
       background: var(--bg-tertiary);
       border-bottom: 1px solid var(--border-color);
       font-weight: 600;
-      font-size: 0.875rem;
-      position: sticky;
-      top: 0;
+      font-size: 0.6rem;
+    }
+
+    .task-list-content {
+      flex: 1;
+      overflow-y: auto;
     }
 
     .group-header {
-      padding: 0.5rem 1rem;
+      padding: 0.3rem 0.6rem;
       background: var(--bg-tertiary);
       font-weight: 600;
-      font-size: 0.8rem;
+      font-size: 0.55rem;
       color: var(--text-secondary);
       border-bottom: 1px solid var(--border-color);
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.3rem;
+      height: var(--row-height);
     }
 
     .group-color {
-      width: 4px;
-      height: 16px;
-      border-radius: 2px;
+      width: 3px;
+      height: 12px;
+      border-radius: 1px;
     }
 
     .task-item {
-      padding: 0.625rem 1rem;
+      padding: 0.3rem 0.6rem;
       border-bottom: 1px solid var(--border-color);
-      font-size: 0.8125rem;
+      font-size: 0.55rem;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.3rem;
       cursor: pointer;
       transition: background 0.15s;
+      height: var(--row-height);
     }
 
     .task-item:hover {
@@ -189,8 +201,15 @@
       text-decoration: line-through;
     }
 
+    .task-color-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
     .task-status {
-      font-size: 0.75rem;
+      font-size: 0.5rem;
     }
 
     .task-name {
@@ -201,10 +220,16 @@
     }
 
     /* Gantt Chart (Right Panel) */
+    .gantt-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
     .gantt-container {
       flex: 1;
-      overflow-x: auto;
-      overflow-y: auto;
+      overflow: auto;
     }
 
     .gantt-chart {
@@ -222,29 +247,28 @@
       background: var(--bg-secondary);
     }
 
-    .timeline-month {
-      text-align: center;
-      padding: 0.5rem;
-      border-bottom: 1px solid var(--border-color);
-      border-right: 1px solid var(--border-color);
-      font-weight: 600;
-      font-size: 0.75rem;
-      background: var(--bg-tertiary);
-    }
-
     .timeline-days {
       display: flex;
     }
 
     .timeline-day {
-      width: 32px;
-      min-width: 32px;
+      width: var(--cell-width);
+      min-width: var(--cell-width);
       text-align: center;
-      padding: 0.25rem;
+      padding: 0.15rem;
       border-bottom: 1px solid var(--border-color);
       border-right: 1px solid var(--border-color);
-      font-size: 0.625rem;
+      font-size: 0.45rem;
       color: var(--text-secondary);
+    }
+
+    .timeline-day .day-name {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .timeline-day .day-num {
+      font-size: 0.4rem;
     }
 
     .timeline-day.weekend {
@@ -253,8 +277,10 @@
 
     .timeline-day.today {
       background: rgba(245, 158, 11, 0.2);
+    }
+
+    .timeline-day.today .day-name {
       color: var(--today);
-      font-weight: 600;
     }
 
     /* Gantt Rows */
@@ -265,18 +291,18 @@
 
     .gantt-row {
       display: flex;
-      height: 32px;
+      height: var(--row-height);
       border-bottom: 1px solid var(--border-color);
+      position: relative;
     }
 
     .gantt-row.group-row {
       background: var(--bg-tertiary);
-      height: 28px;
     }
 
     .gantt-cell {
-      width: 32px;
-      min-width: 32px;
+      width: var(--cell-width);
+      min-width: var(--cell-width);
       border-right: 1px solid var(--border-color);
       position: relative;
     }
@@ -292,57 +318,75 @@
     /* Task Bar */
     .task-bar {
       position: absolute;
-      top: 4px;
-      height: 24px;
-      border-radius: 4px;
+      top: 3px;
+      height: 18px;
+      border-radius: 3px;
       display: flex;
       align-items: center;
-      padding: 0 8px;
-      font-size: 0.6875rem;
+      padding: 0 4px;
+      font-size: 0.45rem;
       color: white;
       white-space: nowrap;
       overflow: hidden;
       z-index: 5;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
 
     .task-bar.completed {
       opacity: 0.7;
     }
 
+    /* 斜紋網底 - 背景執行 */
+    .task-bar.background {
+      background-image: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 3px,
+        rgba(255,255,255,0.15) 3px,
+        rgba(255,255,255,0.15) 6px
+      );
+    }
+
     .milestone {
       position: absolute;
-      top: 8px;
-      width: 16px;
-      height: 16px;
+      top: 6px;
+      width: 12px;
+      height: 12px;
       transform: rotate(45deg) translateX(-50%);
       background: var(--today);
       z-index: 6;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
 
     /* Week View Specific */
     .week-view .gantt-cell {
-      width: 100px;
-      min-width: 100px;
+      width: 80px;
+      min-width: 80px;
     }
 
     .week-view .timeline-day {
-      width: 100px;
-      min-width: 100px;
-      font-size: 0.75rem;
-      padding: 0.5rem;
+      width: 80px;
+      min-width: 80px;
+      padding: 0.3rem;
+    }
+
+    .week-view .timeline-day .day-name {
+      font-size: 0.55rem;
+    }
+
+    .week-view .timeline-day .day-num {
+      font-size: 0.5rem;
     }
 
     /* Year View - Week Mode */
     .year-week-view .gantt-cell {
-      width: 24px;
-      min-width: 24px;
+      width: 16px;
+      min-width: 16px;
     }
 
     .year-week-view .timeline-day {
-      width: 24px;
-      min-width: 24px;
+      width: 16px;
+      min-width: 16px;
     }
 
     /* Tooltip */
@@ -350,10 +394,10 @@
       position: fixed;
       background: var(--bg-tertiary);
       border: 1px solid var(--border-color);
-      border-radius: 0.5rem;
-      padding: 0.75rem;
-      font-size: 0.8125rem;
-      max-width: 280px;
+      border-radius: 0.3rem;
+      padding: 0.5rem;
+      font-size: 0.55rem;
+      max-width: 200px;
       z-index: 1000;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       pointer-events: none;
@@ -366,14 +410,14 @@
 
     .tooltip-title {
       font-weight: 600;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.3rem;
     }
 
     .tooltip-row {
       display: flex;
       justify-content: space-between;
-      gap: 1rem;
-      margin-bottom: 0.25rem;
+      gap: 0.5rem;
+      margin-bottom: 0.15rem;
       color: var(--text-secondary);
     }
 
@@ -381,40 +425,70 @@
       color: var(--text-primary);
     }
 
-    /* Legend */
-    .legend {
+    /* Legend & Footer */
+    .footer {
       display: flex;
-      gap: 1.5rem;
-      padding: 0.75rem 2rem;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.4rem 1rem;
       background: var(--bg-secondary);
       border-top: 1px solid var(--border-color);
-      font-size: 0.75rem;
+      font-size: 0.5rem;
+    }
+
+    .legend {
+      display: flex;
+      gap: 0.8rem;
     }
 
     .legend-item {
       display: flex;
       align-items: center;
-      gap: 0.375rem;
+      gap: 0.25rem;
       color: var(--text-secondary);
     }
 
     .legend-color {
-      width: 16px;
-      height: 8px;
+      width: 12px;
+      height: 6px;
       border-radius: 2px;
     }
 
+    .legend-stripe {
+      width: 12px;
+      height: 6px;
+      border-radius: 2px;
+      background: #3b82f6;
+      background-image: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 2px,
+        rgba(255,255,255,0.3) 2px,
+        rgba(255,255,255,0.3) 4px
+      );
+    }
+
     .legend-milestone {
-      width: 8px;
-      height: 8px;
+      width: 6px;
+      height: 6px;
       transform: rotate(45deg);
       background: var(--today);
     }
 
+    .sponsor {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .sponsor span {
+      color: var(--text-secondary);
+    }
+
     /* Scrollbar */
     ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
+      width: 6px;
+      height: 6px;
     }
 
     ::-webkit-scrollbar-track {
@@ -423,23 +497,11 @@
 
     ::-webkit-scrollbar-thumb {
       background: var(--bg-tertiary);
-      border-radius: 4px;
+      border-radius: 3px;
     }
 
     ::-webkit-scrollbar-thumb:hover {
       background: var(--border-color);
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .task-list {
-        width: 200px;
-        min-width: 200px;
-      }
-
-      .controls {
-        padding: 0.75rem 1rem;
-      }
     }
   </style>
 </head>
@@ -457,7 +519,7 @@
 
   <div class="controls">
     <div class="control-group" id="year-controls">
-      <label>顯示模式：</label>
+      <label>顯示：</label>
       <select id="display-mode">
         <option value="day">按天</option>
         <option value="week">按周</option>
@@ -472,7 +534,7 @@
     </div>
     <div class="control-group" id="week-selector" style="display: none;">
       <label>選擇周：</label>
-      <input type="date" id="week-date" value="2026-01-20">
+      <select id="week-select"></select>
     </div>
     <div class="control-group">
       <label>今天：</label>
@@ -483,37 +545,45 @@
   <div class="main-container">
     <div class="task-list">
       <div class="task-list-header">專案列表</div>
-      <div id="task-list-content"></div>
+      <div class="task-list-content" id="task-list-content"></div>
     </div>
-    <div class="gantt-container">
-      <div class="gantt-chart" id="gantt-chart"></div>
+    <div class="gantt-wrapper">
+      <div class="gantt-container" id="gantt-container">
+        <div class="gantt-chart" id="gantt-chart"></div>
+      </div>
     </div>
   </div>
 
-  <div class="legend">
-    <div class="legend-item">
-      <div class="legend-color" style="background: #3b82f6;"></div>
-      <span>進行中</span>
+  <div class="footer">
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-color" style="background: #3b82f6;"></div>
+        <span>進行中</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #22c55e;"></div>
+        <span>已完成</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #9ca3af;"></div>
+        <span>尚未開始</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-stripe"></div>
+        <span>背景執行</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-milestone"></div>
+        <span>里程碑</span>
+      </div>
+      <div class="legend-item">
+        <div style="width: 12px; height: 6px; background: rgba(245, 158, 11, 0.3); border-radius: 2px;"></div>
+        <span>今天</span>
+      </div>
     </div>
-    <div class="legend-item">
-      <div class="legend-color" style="background: #22c55e;"></div>
-      <span>已完成</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-color" style="background: #9ca3af;"></div>
-      <span>尚未開始</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-milestone"></div>
-      <span>里程碑</span>
-    </div>
-    <div class="legend-item">
-      <div style="width: 16px; height: 8px; background: rgba(245, 158, 11, 0.3); border-radius: 2px;"></div>
-      <span>今天</span>
-    </div>
-    <div style="margin-left: auto; display: flex; align-items: center; gap: 0.5rem;">
-      <span style="color: var(--text-secondary); font-size: 0.7rem;">Sponsored by</span>
-      <iframe data-aa='2403226' src='//acceptable.a-ads.com/2403226' style='border:0; width:120px; height:20px; overflow:hidden; background-color: transparent;'></iframe>
+    <div class="sponsor">
+      <span>Sponsored by</span>
+      <iframe data-aa='2403226' src='//acceptable.a-ads.com/2403226' style='border:0; width:100px; height:16px; overflow:hidden; background-color: transparent;'></iframe>
     </div>
   </div>
 
@@ -523,12 +593,15 @@
   <script>
     // Global State
     const state = {
-      view: 'year',        // 'year' or 'week'
-      displayMode: 'day',  // 'day' or 'week' (for year view)
-      sortMode: 'group',   // 'group' or 'start'
-      selectedWeek: new Date('2026-01-20'),
+      view: 'year',
+      displayMode: 'day',
+      sortMode: 'group',
+      selectedWeek: 4, // Week number
       today: new Date('2026-01-18')
     };
+
+    const DAY_NAMES = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    const DAY_NAMES_WEEK = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
     // Utility Functions
     function parseDate(str) {
@@ -553,6 +626,14 @@
       return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
     }
 
+    function getWeekStartByNumber(year, weekNum) {
+      const jan1 = new Date(year, 0, 1);
+      const days = (weekNum - 1) * 7;
+      const weekStart = new Date(jan1);
+      weekStart.setDate(jan1.getDate() + days - jan1.getDay() + 1);
+      return weekStart;
+    }
+
     function getWeekStart(date) {
       const d = new Date(date);
       const day = d.getDay();
@@ -575,6 +656,23 @@
       return day === 0 || day === 6;
     }
 
+    // Generate week options
+    function generateWeekOptions() {
+      const select = document.getElementById('week-select');
+      const year = SELAH_DATA.meta.year;
+      select.innerHTML = '';
+
+      for (let w = 1; w <= 52; w++) {
+        const weekStart = getWeekStartByNumber(year, w);
+        const option = document.createElement('option');
+        option.value = w;
+        option.textContent = `WK${String(w).padStart(2, '0')} (${weekStart.getMonth() + 1}/${weekStart.getDate()})`;
+        select.appendChild(option);
+      }
+
+      select.value = state.selectedWeek;
+    }
+
     // Get all tasks flattened with group info
     function getAllTasks() {
       const tasks = [];
@@ -591,6 +689,15 @@
       return tasks;
     }
 
+    // Check if task is active in a given week
+    function isTaskActiveInWeek(task, weekStart, weekEnd) {
+      if (!task.start || !task.end) return false;
+      const taskStart = parseDate(task.start);
+      const taskEnd = parseDate(task.end);
+      // Task overlaps with week
+      return taskStart <= weekEnd && taskEnd >= weekStart;
+    }
+
     // Sort tasks
     function sortTasks(tasks, mode) {
       if (mode === 'start') {
@@ -601,7 +708,7 @@
           return new Date(a.start) - new Date(b.start);
         });
       }
-      return tasks; // group mode - return as-is
+      return tasks;
     }
 
     // Render Task List
@@ -609,8 +716,13 @@
       const container = document.getElementById('task-list-content');
       container.innerHTML = '';
 
+      const tasksToShow = getTasksForCurrentView();
+
       if (state.sortMode === 'group') {
         SELAH_DATA.groups.forEach(group => {
+          const groupTasks = tasksToShow.filter(t => t.groupId === group.id);
+          if (groupTasks.length === 0 && state.view === 'week') return;
+
           // Group header
           const groupHeader = document.createElement('div');
           groupHeader.className = 'group-header';
@@ -621,10 +733,12 @@
           container.appendChild(groupHeader);
 
           // Tasks
-          group.tasks.forEach(task => {
+          const tasks = state.view === 'week' ? groupTasks : group.tasks;
+          tasks.forEach(task => {
             const taskItem = document.createElement('div');
             taskItem.className = `task-item ${task.status}`;
             taskItem.innerHTML = `
+              <div class="task-color-dot" style="background: ${group.color}"></div>
               <span class="task-status">${STATUS_CONFIG[task.status].icon}</span>
               <span class="task-name">${task.name}</span>
             `;
@@ -634,17 +748,37 @@
           });
         });
       } else {
-        const allTasks = sortTasks(getAllTasks(), 'start');
+        const allTasks = sortTasks(tasksToShow, 'start');
         allTasks.forEach(task => {
           const taskItem = document.createElement('div');
           taskItem.className = `task-item ${task.status}`;
           taskItem.innerHTML = `
+            <div class="task-color-dot" style="background: ${task.groupColor}"></div>
             <span class="task-status">${STATUS_CONFIG[task.status].icon}</span>
             <span class="task-name">${task.name}</span>
           `;
           taskItem.addEventListener('mouseenter', (e) => showTooltip(e, task, { color: task.groupColor, name: task.groupName }));
           taskItem.addEventListener('mouseleave', hideTooltip);
           container.appendChild(taskItem);
+        });
+      }
+    }
+
+    // Get tasks for current view
+    function getTasksForCurrentView() {
+      const allTasks = getAllTasks();
+
+      if (state.view === 'year') {
+        return allTasks;
+      } else {
+        // Week view - only show tasks active in selected week
+        const weekStart = getWeekStartByNumber(SELAH_DATA.meta.year, state.selectedWeek);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 6);
+
+        return allTasks.filter(task => {
+          if (task.status === 'background') return true; // Always show background tasks
+          return isTaskActiveInWeek(task, weekStart, weekEnd);
         });
       }
     }
@@ -659,7 +793,7 @@
 
     // Generate date range for week view
     function getWeekDateRange() {
-      const weekStart = getWeekStart(state.selectedWeek);
+      const weekStart = getWeekStartByNumber(SELAH_DATA.meta.year, state.selectedWeek);
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekEnd.getDate() + 6);
       return { start: weekStart, end: weekEnd };
@@ -677,27 +811,25 @@
 
       // Generate timeline header
       if (state.displayMode === 'day') {
-        let currentMonth = -1;
         for (let i = 0; i < totalDays; i++) {
           const date = new Date(start);
           date.setDate(date.getDate() + i);
-
           const isToday = isSameDay(date, state.today);
           const weekend = isWeekend(date);
+          const dayName = DAY_NAMES[date.getDay()];
 
-          html += `<div class="timeline-day ${weekend ? 'weekend' : ''} ${isToday ? 'today' : ''}"
-                       data-date="${date.toISOString().split('T')[0]}">
-            ${date.getDate()}${date.getDate() === 1 ? '<br>' + (date.getMonth() + 1) + '月' : ''}
+          html += `<div class="timeline-day ${weekend ? 'weekend' : ''} ${isToday ? 'today' : ''}">
+            <div class="day-name">${dayName}</div>
+            <div class="day-num">${date.getDate()}${date.getDate() === 1 ? '/' + (date.getMonth() + 1) : ''}</div>
           </div>`;
         }
       } else {
-        // Week mode
         const weeks = Math.ceil(totalDays / 7);
         for (let w = 0; w < weeks; w++) {
           const weekStart = new Date(start);
           weekStart.setDate(weekStart.getDate() + w * 7);
           const weekNum = getWeekNumber(weekStart);
-          html += `<div class="timeline-day">W${weekNum}</div>`;
+          html += `<div class="timeline-day"><div class="day-name">W${weekNum}</div></div>`;
         }
       }
 
@@ -741,25 +873,15 @@
       html += '</div>';
       chart.innerHTML = html;
 
-      // Add event listeners for task bars
-      chart.querySelectorAll('.task-bar, .milestone').forEach(el => {
-        el.addEventListener('mouseenter', (e) => {
-          const taskId = e.target.dataset.taskId;
-          const task = getAllTasks().find(t => t.id === taskId);
-          if (task) {
-            showTooltip(e, task, { color: task.groupColor, name: task.groupName });
-          }
-        });
-        el.addEventListener('mouseleave', hideTooltip);
-      });
+      addTaskBarListeners();
     }
 
     // Render single task row
     function renderTaskRow(task, group, rangeStart, totalDays) {
-      let html = `<div class="gantt-row">`;
-
-      const cellWidth = state.displayMode === 'week' ? 24 : 32;
+      const cellWidth = state.displayMode === 'week' ? 16 : 21;
       const numCells = state.displayMode === 'week' ? Math.ceil(totalDays / 7) : totalDays;
+
+      let html = `<div class="gantt-row">`;
 
       for (let i = 0; i < numCells; i++) {
         const date = new Date(rangeStart);
@@ -784,21 +906,22 @@
           const startWeek = Math.floor((taskStart - rangeStart) / (7 * 24 * 60 * 60 * 1000));
           const endWeek = Math.floor((taskEnd - rangeStart) / (7 * 24 * 60 * 60 * 1000));
           startOffset = startWeek * cellWidth;
-          barWidth = (endWeek - startWeek + 1) * cellWidth - 4;
+          barWidth = (endWeek - startWeek + 1) * cellWidth - 2;
         } else {
           const startDay = Math.floor((taskStart - rangeStart) / (24 * 60 * 60 * 1000));
           const duration = getDaysBetween(taskStart, taskEnd);
           startOffset = startDay * cellWidth;
-          barWidth = duration * cellWidth - 4;
+          barWidth = duration * cellWidth - 2;
         }
 
         if (startOffset >= 0 && barWidth > 0) {
-          html = html.replace('</div>', `
-            <div class="task-bar ${task.status}"
-                 style="left: ${startOffset + 2}px; width: ${barWidth}px; background: ${group.color};"
+          const isBackground = task.status === 'background';
+          html = html.replace('</div><!--END-->', '');
+          html += `
+            <div class="task-bar ${task.status} ${isBackground ? 'background' : ''}"
+                 style="left: ${startOffset + 1}px; width: ${barWidth}px; background-color: ${group.color};"
                  data-task-id="${task.id}">
-            </div>
-          </div>`);
+            </div>`;
         }
 
         // Add milestone
@@ -812,9 +935,7 @@
             const milestoneDay = Math.floor((milestoneDate - rangeStart) / (24 * 60 * 60 * 1000));
             milestoneOffset = milestoneDay * cellWidth + cellWidth / 2;
           }
-          html = html.replace('</div></div>', `
-            <div class="milestone" style="left: ${milestoneOffset}px;" data-task-id="${task.id}"></div>
-          </div></div>`);
+          html += `<div class="milestone" style="left: ${milestoneOffset}px;" data-task-id="${task.id}"></div>`;
         }
       }
 
@@ -828,18 +949,19 @@
       chart.className = 'gantt-chart week-view';
 
       const { start, end } = getWeekDateRange();
-      const days = ['一', '二', '三', '四', '五', '六', '日'];
 
       let html = '<div class="timeline-header"><div class="timeline-days">';
 
-      // Generate day headers
+      // Generate day headers with M T W T F S S
       for (let i = 0; i < 7; i++) {
         const date = new Date(start);
         date.setDate(date.getDate() + i);
         const isToday = isSameDay(date, state.today);
         const weekend = isWeekend(date);
+
         html += `<div class="timeline-day ${weekend ? 'weekend' : ''} ${isToday ? 'today' : ''}">
-          ${days[i]} (${date.getMonth() + 1}/${date.getDate()})
+          <div class="day-name">${DAY_NAMES_WEEK[i]}</div>
+          <div class="day-num">${date.getMonth() + 1}/${date.getDate()}</div>
         </div>`;
       }
 
@@ -848,16 +970,20 @@
       // Render rows
       html += '<div class="gantt-body">';
 
-      const allTasks = state.sortMode === 'group' ? getAllTasks() : sortTasks(getAllTasks(), 'start');
+      const tasksToShow = getTasksForCurrentView();
 
       if (state.sortMode === 'group') {
         SELAH_DATA.groups.forEach(group => {
-          group.tasks.forEach(task => {
+          const groupTasks = tasksToShow.filter(t => t.groupId === group.id);
+          if (groupTasks.length === 0) return;
+
+          groupTasks.forEach(task => {
             html += renderWeekTaskRow(task, group, start);
           });
         });
       } else {
-        allTasks.forEach(task => {
+        const sortedTasks = sortTasks(tasksToShow, 'start');
+        sortedTasks.forEach(task => {
           html += renderWeekTaskRow(task, { color: task.groupColor }, start);
         });
       }
@@ -865,23 +991,13 @@
       html += '</div>';
       chart.innerHTML = html;
 
-      // Add event listeners
-      chart.querySelectorAll('.task-bar, .milestone').forEach(el => {
-        el.addEventListener('mouseenter', (e) => {
-          const taskId = e.target.dataset.taskId;
-          const task = getAllTasks().find(t => t.id === taskId);
-          if (task) {
-            showTooltip(e, task, { color: task.groupColor, name: task.groupName });
-          }
-        });
-        el.addEventListener('mouseleave', hideTooltip);
-      });
+      addTaskBarListeners();
     }
 
     // Render week task row
     function renderWeekTaskRow(task, group, weekStart) {
+      const cellWidth = 80;
       let html = '<div class="gantt-row">';
-      const cellWidth = 100;
 
       for (let i = 0; i < 7; i++) {
         const date = new Date(weekStart);
@@ -898,7 +1014,6 @@
         const weekEnd = new Date(weekStart);
         weekEnd.setDate(weekEnd.getDate() + 6);
 
-        // Check if task overlaps with this week
         if (taskStart <= weekEnd && taskEnd >= weekStart) {
           const effectiveStart = taskStart < weekStart ? weekStart : taskStart;
           const effectiveEnd = taskEnd > weekEnd ? weekEnd : taskEnd;
@@ -909,13 +1024,13 @@
           const startOffset = startDay * cellWidth;
           const barWidth = (endDay - startDay + 1) * cellWidth - 4;
 
-          html = html.replace('</div>', `
-            <div class="task-bar ${task.status}"
-                 style="left: ${startOffset + 2}px; width: ${barWidth}px; background: ${group.color};"
+          const isBackground = task.status === 'background';
+          html += `
+            <div class="task-bar ${task.status} ${isBackground ? 'background' : ''}"
+                 style="left: ${startOffset + 2}px; width: ${barWidth}px; background-color: ${group.color};"
                  data-task-id="${task.id}">
               ${task.name}
-            </div>
-          </div>`);
+            </div>`;
         }
 
         // Add milestone if in this week
@@ -924,15 +1039,27 @@
           if (milestoneDate >= weekStart && milestoneDate <= weekEnd) {
             const milestoneDay = Math.floor((milestoneDate - weekStart) / (24 * 60 * 60 * 1000));
             const milestoneOffset = milestoneDay * cellWidth + cellWidth / 2;
-            html = html.replace('</div></div>', `
-              <div class="milestone" style="left: ${milestoneOffset}px;" data-task-id="${task.id}"></div>
-            </div></div>`);
+            html += `<div class="milestone" style="left: ${milestoneOffset}px;" data-task-id="${task.id}"></div>`;
           }
         }
       }
 
       html += '</div>';
       return html;
+    }
+
+    // Add event listeners to task bars
+    function addTaskBarListeners() {
+      document.querySelectorAll('.task-bar, .milestone').forEach(el => {
+        el.addEventListener('mouseenter', (e) => {
+          const taskId = e.target.dataset.taskId;
+          const task = getAllTasks().find(t => t.id === taskId);
+          if (task) {
+            showTooltip(e, task, { color: task.groupColor, name: task.groupName });
+          }
+        });
+        el.addEventListener('mouseleave', hideTooltip);
+      });
     }
 
     // Tooltip
@@ -958,6 +1085,20 @@
       document.getElementById('tooltip').classList.remove('visible');
     }
 
+    // Sync scroll between task list and gantt
+    function syncScroll() {
+      const taskList = document.querySelector('.task-list-content');
+      const ganttContainer = document.getElementById('gantt-container');
+
+      ganttContainer.addEventListener('scroll', () => {
+        taskList.scrollTop = ganttContainer.scrollTop;
+      });
+
+      taskList.addEventListener('scroll', () => {
+        ganttContainer.scrollTop = taskList.scrollTop;
+      });
+    }
+
     // Render based on current state
     function render() {
       renderTaskList();
@@ -975,7 +1116,6 @@
         e.target.classList.add('active');
         state.view = e.target.dataset.view;
 
-        // Toggle controls visibility
         document.getElementById('year-controls').style.display = state.view === 'year' ? 'flex' : 'none';
         document.getElementById('week-selector').style.display = state.view === 'week' ? 'flex' : 'none';
 
@@ -993,13 +1133,15 @@
       render();
     });
 
-    document.getElementById('week-date').addEventListener('change', (e) => {
-      state.selectedWeek = new Date(e.target.value);
+    document.getElementById('week-select').addEventListener('change', (e) => {
+      state.selectedWeek = parseInt(e.target.value);
       render();
     });
 
-    // Initial render
+    // Initialize
     document.getElementById('today-display').textContent = state.today.toLocaleDateString('zh-TW');
+    generateWeekOptions();
+    syncScroll();
     render();
   </script>
 </body>

@@ -80,7 +80,7 @@ const SELAH_DATA = {
           name: "smt-inference code-review",
           start: "2026-01-18",
           end: "2026-01-24",
-          status: "in_progress",
+          status: "background",
           note: "觀察運作"
         },
         {
@@ -127,7 +127,7 @@ const SELAH_DATA = {
           name: "WIH - COPYIC",
           start: "2026-01-18",
           end: "2026-01-24",
-          status: "in_progress",
+          status: "background",
           note: "Peter 負責，監督"
         },
         {
@@ -163,6 +163,7 @@ const SELAH_DATA = {
 const STATUS_CONFIG = {
   completed: { label: "已完成", color: "#22c55e", icon: "🟢" },
   in_progress: { label: "進行中", color: "#3b82f6", icon: "🔵" },
+  background: { label: "背景執行", color: "#3b82f6", icon: "🔷" },
   paused: { label: "暫停中", color: "#eab308", icon: "🟡" },
   cancelled: { label: "已取消", color: "#ef4444", icon: "🔴" },
   not_started: { label: "尚未開始", color: "#9ca3af", icon: "⚪" }
