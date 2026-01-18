@@ -562,6 +562,37 @@
       background: rgba(245, 158, 11, 0.1);
     }
 
+    /* Stats Row */
+    .gantt-table tfoot {
+      position: sticky;
+      bottom: 0;
+      z-index: 15;
+    }
+
+    .stats-row td {
+      background: var(--bg-secondary);
+      border-top: 2px solid var(--border-color);
+      font-size: 0.5rem;
+      color: var(--text-secondary);
+      text-align: center;
+      padding: 2px 0;
+    }
+
+    .stats-row .stat-cell {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .stats-row .stat-in-progress {
+      color: #3b82f6;
+    }
+
+    .stats-row .stat-background {
+      color: #3b82f6;
+      opacity: 0.6;
+    }
+
     /* Task Bar */
     .task-bar {
       position: absolute;
@@ -1046,6 +1077,28 @@
       return { start: weekStart, end: weekEnd };
     }
 
+    // Count tasks active in a date range
+    function countTasksInRange(rangeStart, rangeEnd) {
+      let inProgress = 0;
+      let background = 0;
+
+      SELAH_DATA.groups.forEach(group => {
+        group.tasks.forEach(task => {
+          if (!task.start || !task.end) return;
+          const taskStart = parseDate(task.start);
+          const taskEnd = parseDate(task.end);
+
+          // Check if task overlaps with range
+          if (taskStart <= rangeEnd && taskEnd >= rangeStart) {
+            if (task.status === 'in_progress') inProgress++;
+            else if (task.status === 'background') background++;
+          }
+        });
+      });
+
+      return { inProgress, background };
+    }
+
     function render() {
       const table = document.getElementById('gantt-table');
 
@@ -1138,6 +1191,46 @@
       });
 
       html += '</tbody>';
+
+      // Stats row
+      html += '<tfoot><tr class="stats-row">';
+      html += '<td colspan="2" style="text-align: right; padding-right: 8px;">統計</td>';
+
+      const mode = state.displayMode;
+      const numCells = mode === 'week' ? Math.ceil(totalDays / 7) : (mode === 'biweek' ? Math.ceil(totalDays / 14) : (mode === 'month' ? 12 : totalDays));
+
+      for (let i = 0; i < numCells; i++) {
+        const cellStart = new Date(start);
+        let cellEnd;
+
+        if (mode === 'week') {
+          cellStart.setDate(cellStart.getDate() + i * 7);
+          cellEnd = new Date(cellStart);
+          cellEnd.setDate(cellEnd.getDate() + 6);
+        } else if (mode === 'biweek') {
+          cellStart.setDate(cellStart.getDate() + i * 14);
+          cellEnd = new Date(cellStart);
+          cellEnd.setDate(cellEnd.getDate() + 13);
+        } else if (mode === 'month') {
+          cellStart.setMonth(cellStart.getMonth() + i);
+          cellEnd = new Date(cellStart.getFullYear(), cellStart.getMonth() + 1, 0);
+        } else {
+          cellStart.setDate(cellStart.getDate() + i);
+          cellEnd = new Date(cellStart);
+        }
+
+        const stats = countTasksInRange(cellStart, cellEnd);
+        const hasStats = stats.inProgress > 0 || stats.background > 0;
+
+        html += `<td><div class="stat-cell">`;
+        if (hasStats) {
+          if (stats.inProgress > 0) html += `<span class="stat-in-progress">${stats.inProgress}</span>`;
+          if (stats.background > 0) html += `<span class="stat-background">${stats.background}</span>`;
+        }
+        html += `</div></td>`;
+      }
+
+      html += '</tr></tfoot>';
       table.innerHTML = html;
     }
 
@@ -1199,6 +1292,28 @@
       });
 
       html += '</tbody>';
+
+      // Stats row for week view
+      html += '<tfoot><tr class="stats-row">';
+      html += '<td colspan="2" style="text-align: right; padding-right: 8px;">統計</td>';
+
+      for (let i = 0; i < 7; i++) {
+        const dayStart = new Date(start);
+        dayStart.setDate(dayStart.getDate() + i);
+        const dayEnd = new Date(dayStart);
+
+        const stats = countTasksInRange(dayStart, dayEnd);
+        const hasStats = stats.inProgress > 0 || stats.background > 0;
+
+        html += `<td><div class="stat-cell">`;
+        if (hasStats) {
+          if (stats.inProgress > 0) html += `<span class="stat-in-progress">${stats.inProgress}</span>`;
+          if (stats.background > 0) html += `<span class="stat-background">${stats.background}</span>`;
+        }
+        html += `</div></td>`;
+      }
+
+      html += '</tr></tfoot>';
       table.innerHTML = html;
     }
 
