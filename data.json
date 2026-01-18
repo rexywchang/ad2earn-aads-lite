@@ -4,20 +4,26 @@
     "year": 2026,
     "lastUpdated": "2026-01-18"
   },
-  "groups": [
+  "categories": [
     {
       "id": "tasks",
       "name": "老闆交辦",
       "color": "#6366f1",
-      "tasks": [
+      "projects": [
         {
-          "id": "opencv-ai",
+          "id": "proj-opencv-ai",
           "name": "OpenCV 與 AI 模型知識普及",
-          "start": "2026-01-16",
-          "end": "2026-01-19",
-          "status": "in_progress",
-          "milestone": "2026-01-20",
-          "note": "周一報告後 Close"
+          "tasks": [
+            {
+              "id": "opencv-ai",
+              "name": "OpenCV 與 AI 模型知識普及",
+              "start": "2026-01-16",
+              "end": "2026-01-19",
+              "status": "in_progress",
+              "milestone": "2026-01-20",
+              "note": "周一報告後 Close"
+            }
+          ]
         }
       ]
     },
@@ -25,15 +31,89 @@
       "id": "apex-report",
       "name": "Apex Report",
       "color": "#f59e0b",
-      "tasks": [
+      "projects": [
         {
-          "id": "apexreport",
-          "name": "ApexReport",
-          "start": "2026-01-12",
-          "end": "2026-01-23",
-          "status": "in_progress",
-          "milestone": "2026-01-22",
-          "note": "周三雛型"
+          "id": "proj-apexreport",
+          "name": "週報",
+          "tasks": [
+            {
+              "id": "apexreport",
+              "name": "Lina Report",
+              "start": "2026-01-22",
+              "end": "2026-01-23",
+              "status": "in_progress",
+              "milestone": "2026-01-22",
+              "note": "周三雛型"
+            },
+            {
+              "id": "task-1768742212444",
+              "name": "Model Report",
+              "start": "2026-01-26",
+              "end": "2026-01-27",
+              "status": "in_progress",
+              "note": ""
+            },
+            {
+              "id": "task-1768742212764",
+              "name": "Repair Report",
+              "start": "2026-01-23",
+              "end": "2026-01-26",
+              "status": "in_progress",
+              "note": ""
+            },
+            {
+              "id": "task-1768742213108",
+              "name": "XML Report",
+              "start": "2026-01-27",
+              "end": "2026-01-28",
+              "status": "in_progress",
+              "note": ""
+            },
+            {
+              "id": "task-1768742500750",
+              "name": "Arch",
+              "start": "2026-01-12",
+              "end": "2026-01-22",
+              "status": "in_progress",
+              "note": ""
+            },
+            {
+              "id": "task-1768742309574",
+              "name": "Cost Report",
+              "start": "2026-01-28",
+              "end": "2026-01-29",
+              "status": "in_progress",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "id": "proj-1768742212444",
+          "name": "數據分析",
+          "tasks": [
+            {
+              "id": "task-1768742359315",
+              "name": "新工作項目",
+              "start": "2026-01-20",
+              "end": "2026-01-20",
+              "status": "not_started",
+              "note": ""
+            }
+          ]
+        },
+        {
+          "id": "proj-1768742212764",
+          "name": "Action for performance",
+          "tasks": [
+            {
+              "id": "task-1768742402025",
+              "name": "新工作項目",
+              "start": null,
+              "end": null,
+              "status": "not_started",
+              "note": ""
+            }
+          ]
         }
       ]
     },
@@ -41,38 +121,44 @@
       "id": "apex-launchpad",
       "name": "Apex Launchpad",
       "color": "#8b5cf6",
-      "tasks": [
+      "projects": [
         {
-          "id": "al-home",
-          "name": "AL - Home Pages",
-          "start": "2026-01-15",
-          "end": "2026-01-16",
-          "status": "completed",
-          "note": "已完成"
-        },
-        {
-          "id": "al-euvic",
-          "name": "AL - Euvic",
-          "start": "2026-01-16",
-          "end": "2026-01-19",
-          "status": "in_progress",
-          "note": "今晚修好"
-        },
-        {
-          "id": "al-sow",
-          "name": "AL - SOW",
-          "start": "2026-01-22",
-          "end": "2026-01-23",
-          "status": "in_progress",
-          "note": ""
-        },
-        {
-          "id": "al-aoi-align",
-          "name": "AL - AOI Align",
-          "start": "2026-01-22",
-          "end": "2026-01-23",
-          "status": "in_progress",
-          "note": ""
+          "id": "proj-al-home",
+          "name": "小工具快捷部署系統",
+          "tasks": [
+            {
+              "id": "al-home",
+              "name": "Home Page",
+              "start": "2026-01-15",
+              "end": "2026-01-16",
+              "status": "completed",
+              "note": "已完成"
+            },
+            {
+              "id": "al-euvic",
+              "name": "Euvic",
+              "start": "2026-01-16",
+              "end": "2026-01-19",
+              "status": "in_progress",
+              "note": "今晚修好"
+            },
+            {
+              "id": "al-sow",
+              "name": "SOW",
+              "start": "2026-01-22",
+              "end": "2026-01-23",
+              "status": "in_progress",
+              "note": ""
+            },
+            {
+              "id": "al-aoi-align",
+              "name": "AOI Align",
+              "start": "2026-01-22",
+              "end": "2026-01-23",
+              "status": "in_progress",
+              "note": ""
+            }
+          ]
         }
       ]
     },
@@ -80,30 +166,64 @@
       "id": "aoi",
       "name": "Apex 設備串接",
       "color": "#ec4899",
-      "tasks": [
+      "projects": [
         {
-          "id": "wcd",
-          "name": "WCD 瑕疵 - 搞定要給 Jim, Hailey 的計畫",
-          "start": "2026-01-26",
-          "end": "2026-01-30",
-          "status": "in_progress",
-          "note": "研究圖、交辦"
+          "id": "proj-wcd",
+          "name": "WCD 瑕疵",
+          "tasks": [
+            {
+              "id": "wcd",
+              "name": "需求列表",
+              "start": "2026-01-26",
+              "end": "2026-01-30",
+              "status": "in_progress",
+              "note": "研究圖、交辦"
+            },
+            {
+              "id": "task-1768742356917",
+              "name": "任務列表",
+              "start": "2026-01-26",
+              "end": "2026-01-30",
+              "status": "in_progress",
+              "note": ""
+            }
+          ]
         },
         {
-          "id": "wzsp6",
-          "name": "P6 紅膠後非標設備",
-          "start": null,
-          "end": null,
-          "status": "not_started",
-          "note": "排在紅膠之後"
+          "id": "proj-wzsp6",
+          "name": "P6 DIP",
+          "tasks": [
+            {
+              "id": "wzsp6",
+              "name": "非標設備串接",
+              "start": null,
+              "end": null,
+              "status": "not_started",
+              "note": "排在紅膠之後"
+            }
+          ]
         },
         {
-          "id": "dip-handover",
-          "name": "DIP 勁拓 and 交接",
-          "start": "2026-01-21",
-          "end": "2026-01-21",
-          "status": "pending",
-          "note": "排在損件之後"
+          "id": "proj-dip-handover",
+          "name": "DIP",
+          "tasks": [
+            {
+              "id": "dip-handover",
+              "name": "交接",
+              "start": "2026-01-21",
+              "end": "2026-01-21",
+              "status": "not_started",
+              "note": "排在損件之後"
+            },
+            {
+              "id": "task-1768742218356",
+              "name": "勁拓",
+              "start": "2026-01-18",
+              "end": "2026-01-18",
+              "status": "not_started",
+              "note": ""
+            }
+          ]
         }
       ]
     },
@@ -111,30 +231,56 @@
       "id": "sow-client",
       "name": "New Biz",
       "color": "#10b981",
-      "tasks": [
+      "projects": [
         {
-          "id": "wih-copyic",
+          "id": "proj-wih-copyic",
           "name": "WIH - COPYIC",
-          "start": "2026-01-14",
-          "end": "2026-01-23",
-          "status": "background",
-          "note": "Peter 負責，監督"
+          "tasks": [
+            {
+              "id": "wih-copyic",
+              "name": "[Peter] 算法開發",
+              "start": "2026-01-15",
+              "end": "2026-01-23",
+              "status": "background",
+              "note": "Peter 負責，監督"
+            }
+          ]
         },
         {
-          "id": "task-1768734714000",
+          "id": "proj-sow-plan",
           "name": "SOW - 看圖制定計畫",
-          "start": "2026-01-19",
-          "end": "2026-01-19",
-          "status": "in_progress",
-          "note": ""
+          "tasks": [
+            {
+              "id": "task-1768734714000",
+              "name": "[Hailey] 看圖討論",
+              "start": "2026-01-19",
+              "end": "2026-01-19",
+              "status": "in_progress",
+              "note": ""
+            },
+            {
+              "id": "task-1768743138450",
+              "name": "[Hailey] 後續開發",
+              "start": "2026-01-26",
+              "end": "2026-01-26",
+              "status": "not_started",
+              "note": ""
+            }
+          ]
         },
         {
-          "id": "sow-omron",
+          "id": "proj-sow-omron",
           "name": "SOW - 歐姆龍",
-          "start": "2026-01-26",
-          "end": "2026-01-30",
-          "status": "pending",
-          "note": "周一釐清時程"
+          "tasks": [
+            {
+              "id": "sow-omron",
+              "name": "等待下一步需求",
+              "start": "2026-01-26",
+              "end": "2026-01-30",
+              "status": "not_started",
+              "note": "周一釐清時程"
+            }
+          ]
         }
       ]
     },
@@ -142,38 +288,42 @@
       "id": "group-1768734998809",
       "name": "LLM in Dev",
       "color": "#ef4444",
-      "tasks": [
+      "projects": [
         {
-          "id": "task-1768734998809",
-          "name": "code-review agent v1.0",
-          "start": "2026-01-12",
-          "end": "2026-01-16",
-          "status": "in_progress",
-          "note": ""
+          "id": "proj-code-review",
+          "name": "code-review",
+          "tasks": [
+            {
+              "id": "task-1768734998809",
+              "name": "Agent 開發",
+              "start": "2026-01-12",
+              "end": "2026-01-16",
+              "status": "in_progress",
+              "note": ""
+            },
+            {
+              "id": "smt-inference",
+              "name": "[Jarvis] 新人觀察期",
+              "start": "2026-01-19",
+              "end": "2026-01-23",
+              "status": "background",
+              "note": "觀察運作"
+            }
+          ]
         },
         {
-          "id": "smt-inference",
-          "name": "code-review agent v1.0 tryrun",
-          "start": "2026-01-19",
-          "end": "2026-01-23",
-          "status": "background",
-          "note": "觀察運作"
-        }
-      ]
-    },
-    {
-      "id": "personal",
-      "name": "Zero to One",
-      "color": "#06b6d4",
-      "tasks": [
-        {
-          "id": "personal-cd",
-          "name": "First DevOps",
-          "start": "2026-01-19",
-          "end": "2026-01-23",
-          "status": "in_progress",
-          "milestone": "2026-01-24",
-          "note": "本周要有結果"
+          "id": "proj-code-review-tryrun",
+          "name": "llm naive project",
+          "tasks": [
+            {
+              "id": "task-1768743019547",
+              "name": "新工作項目",
+              "start": null,
+              "end": null,
+              "status": "not_started",
+              "note": ""
+            }
+          ]
         }
       ]
     },
@@ -181,17 +331,45 @@
       "id": "group-1768735781832",
       "name": "SMT",
       "color": "#6366f1",
-      "tasks": [
+      "projects": [
         {
-          "id": "task-1768735781832",
-          "name": "Repair 數據分析",
-          "start": "2026-01-19",
-          "end": "2026-01-20",
-          "status": "in_progress",
-          "note": ""
+          "id": "proj-repair",
+          "name": "Repair 項目優化",
+          "tasks": [
+            {
+              "id": "task-1768743437951",
+              "name": "新工作項目",
+              "start": null,
+              "end": null,
+              "status": "not_started",
+              "note": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "personal",
+      "name": "Zero to One",
+      "color": "#06b6d4",
+      "projects": [
+        {
+          "id": "proj-devops",
+          "name": "First DevOps",
+          "tasks": [
+            {
+              "id": "personal-cd",
+              "name": "First DevOps",
+              "start": "2026-01-19",
+              "end": "2026-01-23",
+              "status": "in_progress",
+              "milestone": "2026-01-24",
+              "note": "本周要有結果"
+            }
+          ]
         }
       ]
     }
   ],
-  "exportedAt": "2026-01-18T11:30:16.240Z"
+  "exportedAt": "2026-01-18T13:38:00.942Z"
 }
