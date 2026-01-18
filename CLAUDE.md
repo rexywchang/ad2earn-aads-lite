@@ -1,229 +1,66 @@
-# Selah - Claude Code 指南
+# CLAUDE.md
 
-> סֶלָה — 停下，思考，再前行
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## 專案概述
+## Project Overview
 
-Selah 是一個個人專案進度管理系統，提供視覺化的甘特圖介面來追蹤任務和專案進度。
+Selah (סֶלָה — "pause, think, move forward") is a personal Gantt chart application for project management. It's a single-file HTML/CSS/JS application with no build process or framework dependencies.
 
-## 目錄結構
+## Development
 
+**No build tools required.** Open `index.html` directly in a browser. Data is stored in `data.json` and persisted to localStorage during editing.
+
+**Deployment:** Push to `main` branch for automatic GitHub Pages deployment.
+
+## Architecture
+
+### Single File Structure
+- `index.html` - Complete application (~2900 lines): HTML structure, CSS styles, and JavaScript logic
+- `data.json` - Project data in JSON format
+
+### Data Model (3-tier hierarchy)
 ```
-/
-├── index.html      # Selah 甘特圖主應用（單檔 HTML/CSS/JS）
-├── data.json       # 專案數據配置 (JSON 格式)
-├── CLAUDE.md       # Claude Code 指南
-└── README.md       # 專案說明
-```
-
-## 技術棧
-
-- 純 HTML/CSS/JavaScript（無框架依賴）
-- localStorage 本地資料儲存
-- GitHub Pages 部署
-
----
-
-## 數據結構
-
-### 三層結構：類別 → 專案 → 工作項目
-
-```json
-{
-  "meta": {
-    "year": 2026
-  },
-  "categories": [
-    {
-      "id": "category-xxx",
-      "name": "類別名稱",
-      "color": "#6366f1",
-      "projects": [
-        {
-          "id": "proj-xxx",
-          "name": "專案名稱",
-          "tasks": [
-            {
-              "id": "task-xxx",
-              "name": "工作項目名稱",
-              "start": "2026-01-20",
-              "end": "2026-01-24",
-              "status": "in_progress",
-              "note": "備註"
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}
+Categories → Projects → Tasks
 ```
 
-### 狀態值
+Each task has:
+- `id`, `name`, `start`, `end` (dates as "YYYY-MM-DD" strings or null)
+- `status`: `"in_progress"` (solid bar), `"background"` (striped bar), `"not_started"` (no bar)
+- Optional: `milestone` (date), `note` (string)
 
-| 狀態值 | 顯示 | 說明 |
-|--------|------|------|
-| `in_progress` | 🔵 執行 | 執行中的任務，實心甘特條 |
-| `background` | 🔷 管理 | 背景/管理任務，斜線紋理甘特條 |
-| `not_started` | ⚪ 待安排 | 尚未開始，不顯示甘特條 |
-
----
-
-## 功能需求
-
-### 視圖模式
-
-1. **雙周甘特圖**（Week View）
-   - 顯示選定雙周（14 天）的任務分佈
-   - 每個日期格寬度 80px
-   - 只顯示該時間範圍內有活動的任務
-   - `background` 狀態任務總是顯示
-
-2. **全年甘特圖**（Year View）
-   - 顯示整年（1/1 - 12/31）任務
-   - 支援四種顯示模式：
-     - **Day**：按天顯示（預設，每格 21px）
-     - **Week**：按周顯示（每格 16px）
-     - **Bi-Week**：按雙周顯示
-     - **Month**：按月顯示
-
-### 凍結欄位
-
-- 類別、專案、工作項目三欄固定在左側
-- 滾動時保持可見
-
-### 視覺標記
-
-- **今日高亮**：橙色背景標記今天
-- **週末標記**：淡色背景區分週末
-- **完成任務**：淡化顯示 + 刪除線（today > end date）
-- **任務條紋理**：`background` 狀態顯示斜線紋理
-
-### 統計功能
-
-- 底部統計行顯示每個時間段的「執行」和「管理」任務數
-- 折線圖視覺化任務數量分佈
-
----
-
-## 操作功能
-
-### 新增
-
-| 操作 | 方式 |
-|------|------|
-| 新增類別 | 點擊表頭「類別 +」按鈕 |
-| 新增專案 | 點擊表頭「專案 +」按鈕（加到最後一個類別） |
-| 新增工作項目 | 點擊表頭「工作項目 +」按鈕（加到最後一個專案） |
-
-### 編輯
-
-| 操作 | 方式 |
-|------|------|
-| 編輯名稱 | 雙擊類別/專案/工作項目名稱 |
-| 完整編輯 | 點擊工作項目的 ℹ 圖示開啟 Modal |
-| 調整日期 | 拖動甘特條移動，拖動邊緣調整長度 |
-
-### 狀態切換
-
-| 操作 | 方式 |
-|------|------|
-| 快速切換 | 雙擊甘特條（在 in_progress/background 間切換） |
-| 完整選單 | 右鍵點擊甘特條 |
-| 設定日期 | 點擊日期格為「待安排」任務設定日期 |
-
-### 拖放功能
-
-| 操作 | 效果 |
-|------|------|
-| 拖放類別 | 調整類別順序 |
-| 拖放專案到類別 | 移動專案到其他類別 |
-| 拖放任務到專案 | 移動任務到其他專案 |
-| 拖放任務到類別 | 為任務建立新專案 |
-| 拖放到刪除區 | 刪除類別/專案/任務（有確認） |
-
-### 刪除
-
-- 將類別/專案/任務拖到左下角的「🗑️ 刪除」區域
-- 會彈出確認對話框
-
----
-
-## 資料管理
-
-### 資料流程
-
-```
-data.json (基礎資料)
-     ↓ 載入
-localStorage (本地編輯)
-     ↓ 匯出
-📋 Copy → 手動貼回 data.json
+### Key State Variables
+```javascript
+state.view        // 'week' or 'year'
+state.displayMode // 'day', 'week', 'biweek', 'month' (year view granularity)
+state.selectedWeek // 1-52 (for week view)
+state.today       // Current date reference
 ```
 
-### 同步按鈕
+### Core Functions
+- `init()` → `loadData()` → `render()` → `renderYearView()` / `renderWeekView()`
+- `saveData()` - Persists to localStorage
+- `syncFromFile()` - Reloads from data.json (clears localStorage)
+- `exportData()` - Copies JSON to clipboard
 
-| 按鈕 | 功能 |
-|------|------|
-| 🔄 Sync | 從 data.json 重新載入（清除本地修改） |
-| 📋 Copy | 複製 JSON 到剪貼簿 |
+### UI Features
+- Frozen left columns (category, project, task names)
+- Drag-drop for reordering and moving items between containers
+- Bar dragging for date adjustment (drag center to move, edges to resize)
+- Double-click for inline name editing or status toggle
+- Right-click context menu for status changes
+- Modal for full task editing (via ℹ icon)
+- Statistics row with line chart at bottom
 
-### 資料同步流程
+## UI Language
 
-1. 在網頁上編輯資料（拖放、新增、修改）
-2. 點擊 **📋 Copy** 複製 JSON 到剪貼簿
-3. 貼上到 `data.json` 檔案並 commit
-4. 如需從 `data.json` 重新載入，點擊 **🔄 Sync**
+Interface is in Traditional Chinese (Taiwan). Status labels:
+- `in_progress` → "執行"
+- `background` → "管理"
+- `not_started` → "待安排"
 
----
+## Data Sync Workflow
 
-## 排序邏輯
-
-### 專案排序
-- 依據專案內最早任務的開始日期排序
-- 全部 `not_started` 的專案排到最後
-
-### 任務排序
-- 依據開始日期排序
-- `not_started` 任務排到最後
-
----
-
-## UI 元件
-
-### Tooltip
-- hover 在甘特條或任務名稱上顯示
-- 顯示：類別、專案、狀態、開始/結束日期、備註
-
-### Modal（編輯面板）
-- 點擊 ℹ 圖示開啟
-- 可編輯：專案、名稱、開始日期、結束日期、狀態、備註
-
-### 循環按鈕
-- 單擊：切換到下一個選項
-- 雙擊：展開下拉選單
-
----
-
-## 樣式變數
-
-```css
-:root {
-  --bg-primary: #0f172a;      /* 主背景 */
-  --bg-secondary: #1e293b;    /* 次背景 */
-  --bg-tertiary: #334155;     /* 第三層背景 */
-  --text-primary: #f1f5f9;    /* 主文字 */
-  --text-secondary: #94a3b8;  /* 次要文字 */
-  --border-color: #475569;    /* 邊框 */
-  --accent: #6366f1;          /* 強調色 */
-  --today: #f59e0b;           /* 今日標記 */
-  --cell-width: 21px;         /* 日期格寬度 */
-  --row-height: 22px;         /* 行高 */
-}
-```
-
----
-
-## 部署
-
-推送到 `main` 分支後，GitHub Pages 會自動部署。
+1. Edit in browser (changes go to localStorage)
+2. Click "📋 Copy" to export JSON
+3. Paste into `data.json` and commit
+4. Click "🔄 Sync" to reload from `data.json` (overwrites localStorage)
