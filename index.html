@@ -14,11 +14,10 @@
       --border-color: #475569;
       --accent: #6366f1;
       --today: #f59e0b;
-      /* 縮小至 67% */
-      --base-font: 0.67rem;
       --cell-width: 21px;
-      --cell-height: 21px;
-      --row-height: 24px;
+      --row-height: 22px;
+      --group-col-width: 60px;
+      --task-col-width: 120px;
     }
 
     * {
@@ -31,7 +30,7 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans TC', sans-serif;
       background: var(--bg-primary);
       color: var(--text-primary);
-      font-size: var(--base-font);
+      font-size: 0.67rem;
       min-height: 100vh;
     }
 
@@ -64,7 +63,6 @@
       font-size: 0.6rem;
     }
 
-    /* Navigation */
     .nav-tabs {
       display: flex;
       gap: 0.3rem;
@@ -130,75 +128,126 @@
 
     /* Main Container */
     .main-container {
-      display: flex;
       height: calc(100vh - 70px);
-      overflow: hidden;
+      overflow: auto;
     }
 
-    /* Task List (Left Panel) */
-    .task-list {
-      width: 180px;
-      min-width: 180px;
-      border-right: 1px solid var(--border-color);
-      background: var(--bg-secondary);
+    /* Gantt Table */
+    .gantt-table {
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .gantt-table th,
+    .gantt-table td {
+      border: 1px solid var(--border-color);
+      height: var(--row-height);
+      vertical-align: middle;
+      text-align: center;
+    }
+
+    /* Header row */
+    .gantt-table thead {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .gantt-table thead th {
+      background: var(--bg-tertiary);
+      font-weight: 600;
+      font-size: 0.5rem;
+      padding: 2px;
+    }
+
+    .gantt-table thead th.col-group {
+      width: var(--group-col-width);
+      min-width: var(--group-col-width);
+    }
+
+    .gantt-table thead th.col-task {
+      width: var(--task-col-width);
+      min-width: var(--task-col-width);
+    }
+
+    .gantt-table thead th.col-day {
+      width: var(--cell-width);
+      min-width: var(--cell-width);
+    }
+
+    .day-header {
       display: flex;
       flex-direction: column;
+      align-items: center;
+      line-height: 1.1;
     }
 
-    .task-list-header {
-      padding: 0.4rem 0.6rem;
-      background: var(--bg-tertiary);
-      border-bottom: 1px solid var(--border-color);
+    .day-name {
       font-weight: 600;
-      font-size: 0.6rem;
+      color: var(--text-primary);
     }
 
-    .task-list-content {
-      flex: 1;
-      overflow-y: auto;
-    }
-
-    .group-header {
-      padding: 0.3rem 0.6rem;
-      background: var(--bg-tertiary);
-      font-weight: 600;
-      font-size: 0.55rem;
+    .day-num {
+      font-size: 0.4rem;
       color: var(--text-secondary);
-      border-bottom: 1px solid var(--border-color);
+    }
+
+    .col-day.weekend {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .col-day.today {
+      background: rgba(245, 158, 11, 0.2);
+    }
+
+    .col-day.today .day-name {
+      color: var(--today);
+    }
+
+    /* Group cell (merged) */
+    .cell-group {
+      background: var(--bg-tertiary);
+      font-size: 0.5rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      writing-mode: vertical-lr;
+      text-orientation: mixed;
+      padding: 4px 2px;
+      width: var(--group-col-width);
+      min-width: var(--group-col-width);
+    }
+
+    .group-label {
       display: flex;
       align-items: center;
-      gap: 0.3rem;
-      height: var(--row-height);
+      gap: 4px;
+      transform: rotate(180deg);
     }
 
-    .group-color {
+    .group-color-bar {
       width: 3px;
-      height: 12px;
+      height: 100%;
+      min-height: 12px;
       border-radius: 1px;
     }
 
-    .task-item {
-      padding: 0.3rem 0.6rem;
-      border-bottom: 1px solid var(--border-color);
+    /* Task cell */
+    .cell-task {
+      background: var(--bg-secondary);
+      text-align: left;
+      padding: 0 6px;
       font-size: 0.55rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: var(--task-col-width);
+      min-width: var(--task-col-width);
+    }
+
+    .cell-task .task-content {
       display: flex;
       align-items: center;
-      gap: 0.3rem;
-      cursor: pointer;
-      transition: background 0.15s;
-      height: var(--row-height);
-    }
-
-    .task-item:hover {
-      background: var(--bg-tertiary);
-    }
-
-    .task-item.completed {
-      opacity: 0.6;
-    }
-
-    .task-item.completed .task-name {
-      text-decoration: line-through;
+      gap: 4px;
     }
 
     .task-color-dot {
@@ -209,117 +258,45 @@
     }
 
     .task-status {
-      font-size: 0.5rem;
+      font-size: 0.45rem;
     }
 
     .task-name {
       flex: 1;
-      white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
-    /* Gantt Chart (Right Panel) */
-    .gantt-wrapper {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
+    .cell-task.completed {
+      opacity: 0.6;
     }
 
-    .gantt-container {
-      flex: 1;
-      overflow: auto;
+    .cell-task.completed .task-name {
+      text-decoration: line-through;
     }
 
-    .gantt-chart {
-      display: flex;
-      flex-direction: column;
-      min-width: max-content;
-    }
-
-    /* Timeline Header */
-    .timeline-header {
-      display: flex;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background: var(--bg-secondary);
-    }
-
-    .timeline-days {
-      display: flex;
-    }
-
-    .timeline-day {
+    /* Day cells */
+    .cell-day {
+      background: var(--bg-primary);
+      position: relative;
       width: var(--cell-width);
       min-width: var(--cell-width);
-      text-align: center;
-      padding: 0.15rem;
-      border-bottom: 1px solid var(--border-color);
-      border-right: 1px solid var(--border-color);
-      font-size: 0.45rem;
-      color: var(--text-secondary);
+      padding: 0;
     }
 
-    .timeline-day .day-name {
-      font-weight: 600;
-      color: var(--text-primary);
-    }
-
-    .timeline-day .day-num {
-      font-size: 0.4rem;
-    }
-
-    .timeline-day.weekend {
-      background: rgba(255, 255, 255, 0.03);
-    }
-
-    .timeline-day.today {
-      background: rgba(245, 158, 11, 0.2);
-    }
-
-    .timeline-day.today .day-name {
-      color: var(--today);
-    }
-
-    /* Gantt Rows */
-    .gantt-body {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .gantt-row {
-      display: flex;
-      height: var(--row-height);
-      border-bottom: 1px solid var(--border-color);
-      position: relative;
-    }
-
-    .gantt-row.group-row {
-      background: var(--bg-tertiary);
-    }
-
-    .gantt-cell {
-      width: var(--cell-width);
-      min-width: var(--cell-width);
-      border-right: 1px solid var(--border-color);
-      position: relative;
-    }
-
-    .gantt-cell.weekend {
+    .cell-day.weekend {
       background: rgba(255, 255, 255, 0.02);
     }
 
-    .gantt-cell.today {
+    .cell-day.today {
       background: rgba(245, 158, 11, 0.1);
     }
 
     /* Task Bar */
     .task-bar {
       position: absolute;
-      top: 3px;
-      height: 18px;
+      top: 2px;
+      height: calc(var(--row-height) - 6px);
       border-radius: 3px;
       display: flex;
       align-items: center;
@@ -330,13 +307,13 @@
       overflow: hidden;
       z-index: 5;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
     }
 
     .task-bar.completed {
       opacity: 0.7;
     }
 
-    /* 斜紋網底 - 背景執行 */
     .task-bar.background {
       background-image: repeating-linear-gradient(
         45deg,
@@ -349,42 +326,48 @@
 
     .milestone {
       position: absolute;
-      top: 6px;
-      width: 12px;
-      height: 12px;
-      transform: rotate(45deg) translateX(-50%);
+      top: 50%;
+      width: 10px;
+      height: 10px;
+      transform: rotate(45deg) translate(-50%, -50%);
+      transform-origin: top left;
       background: var(--today);
       z-index: 6;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
 
-    /* Week View Specific */
-    .week-view .gantt-cell {
+    /* Week View */
+    .week-view .col-day,
+    .week-view .cell-day {
       width: 80px;
       min-width: 80px;
     }
 
-    .week-view .timeline-day {
+    .week-view thead th.col-day {
       width: 80px;
       min-width: 80px;
-      padding: 0.3rem;
     }
 
-    .week-view .timeline-day .day-name {
+    .week-view .day-header {
+      padding: 4px;
+    }
+
+    .week-view .day-name {
       font-size: 0.55rem;
     }
 
-    .week-view .timeline-day .day-num {
+    .week-view .day-num {
       font-size: 0.5rem;
     }
 
-    /* Year View - Week Mode */
-    .year-week-view .gantt-cell {
+    /* Year Week Mode */
+    .year-week-view .col-day,
+    .year-week-view .cell-day {
       width: 16px;
       min-width: 16px;
     }
 
-    .year-week-view .timeline-day {
+    .year-week-view thead th.col-day {
       width: 16px;
       min-width: 16px;
     }
@@ -425,7 +408,7 @@
       color: var(--text-primary);
     }
 
-    /* Legend & Footer */
+    /* Footer */
     .footer {
       display: flex;
       justify-content: space-between;
@@ -434,6 +417,8 @@
       background: var(--bg-secondary);
       border-top: 1px solid var(--border-color);
       font-size: 0.5rem;
+      position: sticky;
+      bottom: 0;
     }
 
     .legend {
@@ -525,13 +510,6 @@
         <option value="week">按周</option>
       </select>
     </div>
-    <div class="control-group">
-      <label>排序：</label>
-      <select id="sort-mode">
-        <option value="group">按分群</option>
-        <option value="start">按開始日期</option>
-      </select>
-    </div>
     <div class="control-group" id="week-selector" style="display: none;">
       <label>選擇周：</label>
       <select id="week-select"></select>
@@ -543,15 +521,7 @@
   </div>
 
   <div class="main-container">
-    <div class="task-list">
-      <div class="task-list-header">專案列表</div>
-      <div class="task-list-content" id="task-list-content"></div>
-    </div>
-    <div class="gantt-wrapper">
-      <div class="gantt-container" id="gantt-container">
-        <div class="gantt-chart" id="gantt-chart"></div>
-      </div>
-    </div>
+    <table class="gantt-table" id="gantt-table"></table>
   </div>
 
   <div class="footer">
@@ -591,19 +561,16 @@
 
   <script src="data.js"></script>
   <script>
-    // Global State
     const state = {
       view: 'year',
       displayMode: 'day',
-      sortMode: 'group',
-      selectedWeek: 4, // Week number
+      selectedWeek: 4,
       today: new Date('2026-01-18')
     };
 
     const DAY_NAMES = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
     const DAY_NAMES_WEEK = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
-    // Utility Functions
     function parseDate(str) {
       if (!str) return null;
       return new Date(str);
@@ -634,13 +601,6 @@
       return weekStart;
     }
 
-    function getWeekStart(date) {
-      const d = new Date(date);
-      const day = d.getDay();
-      const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-      return new Date(d.setDate(diff));
-    }
-
     function getDaysBetween(start, end) {
       return Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
     }
@@ -656,7 +616,6 @@
       return day === 0 || day === 6;
     }
 
-    // Generate week options
     function generateWeekOptions() {
       const select = document.getElementById('week-select');
       const year = SELAH_DATA.meta.year;
@@ -673,7 +632,6 @@
       select.value = state.selectedWeek;
     }
 
-    // Get all tasks flattened with group info
     function getAllTasks() {
       const tasks = [];
       SELAH_DATA.groups.forEach(group => {
@@ -689,101 +647,13 @@
       return tasks;
     }
 
-    // Check if task is active in a given week
     function isTaskActiveInWeek(task, weekStart, weekEnd) {
       if (!task.start || !task.end) return false;
       const taskStart = parseDate(task.start);
       const taskEnd = parseDate(task.end);
-      // Task overlaps with week
       return taskStart <= weekEnd && taskEnd >= weekStart;
     }
 
-    // Sort tasks
-    function sortTasks(tasks, mode) {
-      if (mode === 'start') {
-        return [...tasks].sort((a, b) => {
-          if (!a.start && !b.start) return 0;
-          if (!a.start) return 1;
-          if (!b.start) return -1;
-          return new Date(a.start) - new Date(b.start);
-        });
-      }
-      return tasks;
-    }
-
-    // Render Task List
-    function renderTaskList() {
-      const container = document.getElementById('task-list-content');
-      container.innerHTML = '';
-
-      const tasksToShow = getTasksForCurrentView();
-
-      if (state.sortMode === 'group') {
-        SELAH_DATA.groups.forEach(group => {
-          const groupTasks = tasksToShow.filter(t => t.groupId === group.id);
-          if (groupTasks.length === 0 && state.view === 'week') return;
-
-          // Group header
-          const groupHeader = document.createElement('div');
-          groupHeader.className = 'group-header';
-          groupHeader.innerHTML = `
-            <div class="group-color" style="background: ${group.color}"></div>
-            ${group.name}
-          `;
-          container.appendChild(groupHeader);
-
-          // Tasks
-          const tasks = state.view === 'week' ? groupTasks : group.tasks;
-          tasks.forEach(task => {
-            const taskItem = document.createElement('div');
-            taskItem.className = `task-item ${task.status}`;
-            taskItem.innerHTML = `
-              <div class="task-color-dot" style="background: ${group.color}"></div>
-              <span class="task-status">${STATUS_CONFIG[task.status].icon}</span>
-              <span class="task-name">${task.name}</span>
-            `;
-            taskItem.addEventListener('mouseenter', (e) => showTooltip(e, task, group));
-            taskItem.addEventListener('mouseleave', hideTooltip);
-            container.appendChild(taskItem);
-          });
-        });
-      } else {
-        const allTasks = sortTasks(tasksToShow, 'start');
-        allTasks.forEach(task => {
-          const taskItem = document.createElement('div');
-          taskItem.className = `task-item ${task.status}`;
-          taskItem.innerHTML = `
-            <div class="task-color-dot" style="background: ${task.groupColor}"></div>
-            <span class="task-status">${STATUS_CONFIG[task.status].icon}</span>
-            <span class="task-name">${task.name}</span>
-          `;
-          taskItem.addEventListener('mouseenter', (e) => showTooltip(e, task, { color: task.groupColor, name: task.groupName }));
-          taskItem.addEventListener('mouseleave', hideTooltip);
-          container.appendChild(taskItem);
-        });
-      }
-    }
-
-    // Get tasks for current view
-    function getTasksForCurrentView() {
-      const allTasks = getAllTasks();
-
-      if (state.view === 'year') {
-        return allTasks;
-      } else {
-        // Week view - only show tasks active in selected week
-        const weekStart = getWeekStartByNumber(SELAH_DATA.meta.year, state.selectedWeek);
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekEnd.getDate() + 6);
-
-        return allTasks.filter(task => {
-          if (task.status === 'background') return true; // Always show background tasks
-          return isTaskActiveInWeek(task, weekStart, weekEnd);
-        });
-      }
-    }
-
-    // Generate date range for year view
     function getYearDateRange() {
       const year = SELAH_DATA.meta.year;
       const start = new Date(year, 0, 1);
@@ -791,7 +661,6 @@
       return { start, end };
     }
 
-    // Generate date range for week view
     function getWeekDateRange() {
       const weekStart = getWeekStartByNumber(SELAH_DATA.meta.year, state.selectedWeek);
       const weekEnd = new Date(weekStart);
@@ -799,17 +668,28 @@
       return { start: weekStart, end: weekEnd };
     }
 
-    // Render Year View
-    function renderYearView() {
-      const chart = document.getElementById('gantt-chart');
-      chart.className = state.displayMode === 'week' ? 'gantt-chart year-week-view' : 'gantt-chart';
+    function render() {
+      const table = document.getElementById('gantt-table');
 
+      if (state.view === 'year') {
+        table.className = state.displayMode === 'week' ? 'gantt-table year-week-view' : 'gantt-table';
+        renderYearView(table);
+      } else {
+        table.className = 'gantt-table week-view';
+        renderWeekView(table);
+      }
+
+      addEventListeners();
+    }
+
+    function renderYearView(table) {
       const { start, end } = getYearDateRange();
       const totalDays = getDaysBetween(start, end);
 
-      let html = '<div class="timeline-header"><div class="timeline-days">';
+      let html = '<thead><tr>';
+      html += '<th class="col-group">群組</th>';
+      html += '<th class="col-task">專案</th>';
 
-      // Generate timeline header
       if (state.displayMode === 'day') {
         for (let i = 0; i < totalDays; i++) {
           const date = new Date(start);
@@ -818,10 +698,12 @@
           const weekend = isWeekend(date);
           const dayName = DAY_NAMES[date.getDay()];
 
-          html += `<div class="timeline-day ${weekend ? 'weekend' : ''} ${isToday ? 'today' : ''}">
-            <div class="day-name">${dayName}</div>
-            <div class="day-num">${date.getDate()}${date.getDate() === 1 ? '/' + (date.getMonth() + 1) : ''}</div>
-          </div>`;
+          html += `<th class="col-day ${weekend ? 'weekend' : ''} ${isToday ? 'today' : ''}">
+            <div class="day-header">
+              <span class="day-name">${dayName}</span>
+              <span class="day-num">${date.getDate()}${date.getDate() === 1 ? '/' + (date.getMonth() + 1) : ''}</span>
+            </div>
+          </th>`;
         }
       } else {
         const weeks = Math.ceil(totalDays / 7);
@@ -829,245 +711,273 @@
           const weekStart = new Date(start);
           weekStart.setDate(weekStart.getDate() + w * 7);
           const weekNum = getWeekNumber(weekStart);
-          html += `<div class="timeline-day"><div class="day-name">W${weekNum}</div></div>`;
+          html += `<th class="col-day"><div class="day-header"><span class="day-name">W${weekNum}</span></div></th>`;
         }
       }
 
-      html += '</div></div>';
+      html += '</tr></thead><tbody>';
 
-      // Render rows
-      html += '<div class="gantt-body">';
+      SELAH_DATA.groups.forEach(group => {
+        const taskCount = group.tasks.length;
 
-      if (state.sortMode === 'group') {
-        SELAH_DATA.groups.forEach(group => {
-          // Group row
-          html += `<div class="gantt-row group-row">`;
-          if (state.displayMode === 'day') {
-            for (let i = 0; i < totalDays; i++) {
-              const date = new Date(start);
-              date.setDate(date.getDate() + i);
-              const isToday = isSameDay(date, state.today);
-              const weekend = isWeekend(date);
-              html += `<div class="gantt-cell ${weekend ? 'weekend' : ''} ${isToday ? 'today' : ''}"></div>`;
-            }
-          } else {
-            const weeks = Math.ceil(totalDays / 7);
-            for (let w = 0; w < weeks; w++) {
-              html += `<div class="gantt-cell"></div>`;
-            }
+        group.tasks.forEach((task, idx) => {
+          html += '<tr>';
+
+          if (idx === 0) {
+            html += `<td class="cell-group" rowspan="${taskCount}">
+              <div class="group-label">
+                <span class="group-color-bar" style="background: ${group.color}"></span>
+                <span>${group.name}</span>
+              </div>
+            </td>`;
           }
-          html += '</div>';
 
-          // Task rows
-          group.tasks.forEach(task => {
-            html += renderTaskRow(task, group, start, totalDays);
-          });
+          html += `<td class="cell-task ${task.status}" data-task-id="${task.id}">
+            <div class="task-content">
+              <span class="task-color-dot" style="background: ${group.color}"></span>
+              <span class="task-status">${STATUS_CONFIG[task.status].icon}</span>
+              <span class="task-name">${task.name}</span>
+            </div>
+          </td>`;
+
+          html += renderDayCells(task, group, start, totalDays, state.displayMode);
+
+          html += '</tr>';
         });
-      } else {
-        const allTasks = sortTasks(getAllTasks(), 'start');
-        allTasks.forEach(task => {
-          html += renderTaskRow(task, { color: task.groupColor }, start, totalDays);
-        });
-      }
+      });
 
-      html += '</div>';
-      chart.innerHTML = html;
-
-      addTaskBarListeners();
+      html += '</tbody>';
+      table.innerHTML = html;
     }
 
-    // Render single task row
-    function renderTaskRow(task, group, rangeStart, totalDays) {
-      const cellWidth = state.displayMode === 'week' ? 16 : 21;
-      const numCells = state.displayMode === 'week' ? Math.ceil(totalDays / 7) : totalDays;
-
-      let html = `<div class="gantt-row">`;
-
-      for (let i = 0; i < numCells; i++) {
-        const date = new Date(rangeStart);
-        if (state.displayMode === 'week') {
-          date.setDate(date.getDate() + i * 7);
-        } else {
-          date.setDate(date.getDate() + i);
-        }
-        const isToday = state.displayMode === 'day' && isSameDay(date, state.today);
-        const weekend = state.displayMode === 'day' && isWeekend(date);
-        html += `<div class="gantt-cell ${weekend ? 'weekend' : ''} ${isToday ? 'today' : ''}"></div>`;
-      }
-
-      // Add task bar if has dates
-      if (task.start && task.end) {
-        const taskStart = parseDate(task.start);
-        const taskEnd = parseDate(task.end);
-
-        let startOffset, barWidth;
-
-        if (state.displayMode === 'week') {
-          const startWeek = Math.floor((taskStart - rangeStart) / (7 * 24 * 60 * 60 * 1000));
-          const endWeek = Math.floor((taskEnd - rangeStart) / (7 * 24 * 60 * 60 * 1000));
-          startOffset = startWeek * cellWidth;
-          barWidth = (endWeek - startWeek + 1) * cellWidth - 2;
-        } else {
-          const startDay = Math.floor((taskStart - rangeStart) / (24 * 60 * 60 * 1000));
-          const duration = getDaysBetween(taskStart, taskEnd);
-          startOffset = startDay * cellWidth;
-          barWidth = duration * cellWidth - 2;
-        }
-
-        if (startOffset >= 0 && barWidth > 0) {
-          const isBackground = task.status === 'background';
-          html = html.replace('</div><!--END-->', '');
-          html += `
-            <div class="task-bar ${task.status} ${isBackground ? 'background' : ''}"
-                 style="left: ${startOffset + 1}px; width: ${barWidth}px; background-color: ${group.color};"
-                 data-task-id="${task.id}">
-            </div>`;
-        }
-
-        // Add milestone
-        if (task.milestone) {
-          const milestoneDate = parseDate(task.milestone);
-          let milestoneOffset;
-          if (state.displayMode === 'week') {
-            const milestoneWeek = Math.floor((milestoneDate - rangeStart) / (7 * 24 * 60 * 60 * 1000));
-            milestoneOffset = milestoneWeek * cellWidth + cellWidth / 2;
-          } else {
-            const milestoneDay = Math.floor((milestoneDate - rangeStart) / (24 * 60 * 60 * 1000));
-            milestoneOffset = milestoneDay * cellWidth + cellWidth / 2;
-          }
-          html += `<div class="milestone" style="left: ${milestoneOffset}px;" data-task-id="${task.id}"></div>`;
-        }
-      }
-
-      html += '</div>';
-      return html;
-    }
-
-    // Render Week View
-    function renderWeekView() {
-      const chart = document.getElementById('gantt-chart');
-      chart.className = 'gantt-chart week-view';
-
+    function renderWeekView(table) {
       const { start, end } = getWeekDateRange();
 
-      let html = '<div class="timeline-header"><div class="timeline-days">';
+      let html = '<thead><tr>';
+      html += '<th class="col-group">群組</th>';
+      html += '<th class="col-task">專案</th>';
 
-      // Generate day headers with M T W T F S S
       for (let i = 0; i < 7; i++) {
         const date = new Date(start);
         date.setDate(date.getDate() + i);
         const isToday = isSameDay(date, state.today);
         const weekend = isWeekend(date);
 
-        html += `<div class="timeline-day ${weekend ? 'weekend' : ''} ${isToday ? 'today' : ''}">
-          <div class="day-name">${DAY_NAMES_WEEK[i]}</div>
-          <div class="day-num">${date.getMonth() + 1}/${date.getDate()}</div>
-        </div>`;
+        html += `<th class="col-day ${weekend ? 'weekend' : ''} ${isToday ? 'today' : ''}">
+          <div class="day-header">
+            <span class="day-name">${DAY_NAMES_WEEK[i]}</span>
+            <span class="day-num">${date.getMonth() + 1}/${date.getDate()}</span>
+          </div>
+        </th>`;
       }
 
-      html += '</div></div>';
+      html += '</tr></thead><tbody>';
 
-      // Render rows
-      html += '<div class="gantt-body">';
-
-      const tasksToShow = getTasksForCurrentView();
-
-      if (state.sortMode === 'group') {
-        SELAH_DATA.groups.forEach(group => {
-          const groupTasks = tasksToShow.filter(t => t.groupId === group.id);
-          if (groupTasks.length === 0) return;
-
-          groupTasks.forEach(task => {
-            html += renderWeekTaskRow(task, group, start);
-          });
+      SELAH_DATA.groups.forEach(group => {
+        const activeTasks = group.tasks.filter(task => {
+          if (task.status === 'background') return true;
+          return isTaskActiveInWeek(task, start, end);
         });
-      } else {
-        const sortedTasks = sortTasks(tasksToShow, 'start');
-        sortedTasks.forEach(task => {
-          html += renderWeekTaskRow(task, { color: task.groupColor }, start);
+
+        if (activeTasks.length === 0) return;
+
+        activeTasks.forEach((task, idx) => {
+          html += '<tr>';
+
+          if (idx === 0) {
+            html += `<td class="cell-group" rowspan="${activeTasks.length}">
+              <div class="group-label">
+                <span class="group-color-bar" style="background: ${group.color}"></span>
+                <span>${group.name}</span>
+              </div>
+            </td>`;
+          }
+
+          html += `<td class="cell-task ${task.status}" data-task-id="${task.id}">
+            <div class="task-content">
+              <span class="task-color-dot" style="background: ${group.color}"></span>
+              <span class="task-status">${STATUS_CONFIG[task.status].icon}</span>
+              <span class="task-name">${task.name}</span>
+            </div>
+          </td>`;
+
+          html += renderWeekDayCells(task, group, start);
+
+          html += '</tr>';
         });
-      }
+      });
 
-      html += '</div>';
-      chart.innerHTML = html;
-
-      addTaskBarListeners();
+      html += '</tbody>';
+      table.innerHTML = html;
     }
 
-    // Render week task row
-    function renderWeekTaskRow(task, group, weekStart) {
+    function renderDayCells(task, group, rangeStart, totalDays, mode) {
+      const cellWidth = mode === 'week' ? 16 : 21;
+      const numCells = mode === 'week' ? Math.ceil(totalDays / 7) : totalDays;
+
+      let html = '';
+      let taskBarHtml = '';
+      let milestoneHtml = '';
+
+      if (task.start && task.end) {
+        const taskStart = parseDate(task.start);
+        const taskEnd = parseDate(task.end);
+
+        let startCell, endCell;
+
+        if (mode === 'week') {
+          startCell = Math.floor((taskStart - rangeStart) / (7 * 24 * 60 * 60 * 1000));
+          endCell = Math.floor((taskEnd - rangeStart) / (7 * 24 * 60 * 60 * 1000));
+        } else {
+          startCell = Math.floor((taskStart - rangeStart) / (24 * 60 * 60 * 1000));
+          endCell = Math.floor((taskEnd - rangeStart) / (24 * 60 * 60 * 1000));
+        }
+
+        const barWidth = (endCell - startCell + 1) * cellWidth - 4;
+        const isBackground = task.status === 'background';
+
+        if (startCell >= 0 && startCell < numCells) {
+          taskBarHtml = `<div class="task-bar ${task.status} ${isBackground ? 'background' : ''}"
+               style="left: 2px; width: ${barWidth}px; background-color: ${group.color};"
+               data-task-id="${task.id}"></div>`;
+        }
+
+        if (task.milestone) {
+          const milestoneDate = parseDate(task.milestone);
+          let milestoneCell;
+          if (mode === 'week') {
+            milestoneCell = Math.floor((milestoneDate - rangeStart) / (7 * 24 * 60 * 60 * 1000));
+          } else {
+            milestoneCell = Math.floor((milestoneDate - rangeStart) / (24 * 60 * 60 * 1000));
+          }
+          if (milestoneCell >= 0 && milestoneCell < numCells) {
+            milestoneHtml = `<div class="milestone" style="left: ${cellWidth / 2}px;" data-task-id="${task.id}"></div>`;
+          }
+        }
+      }
+
+      for (let i = 0; i < numCells; i++) {
+        const date = new Date(rangeStart);
+        if (mode === 'week') {
+          date.setDate(date.getDate() + i * 7);
+        } else {
+          date.setDate(date.getDate() + i);
+        }
+        const isToday = mode === 'day' && isSameDay(date, state.today);
+        const weekend = mode === 'day' && isWeekend(date);
+
+        let cellContent = '';
+
+        if (task.start && task.end) {
+          const taskStart = parseDate(task.start);
+          const taskEnd = parseDate(task.end);
+          let startCell, endCell, milestoneCell;
+
+          if (mode === 'week') {
+            startCell = Math.floor((taskStart - rangeStart) / (7 * 24 * 60 * 60 * 1000));
+            endCell = Math.floor((taskEnd - rangeStart) / (7 * 24 * 60 * 60 * 1000));
+          } else {
+            startCell = Math.floor((taskStart - rangeStart) / (24 * 60 * 60 * 1000));
+            endCell = Math.floor((taskEnd - rangeStart) / (24 * 60 * 60 * 1000));
+          }
+
+          if (i === startCell) {
+            const barWidth = (endCell - startCell + 1) * cellWidth - 4;
+            const isBackground = task.status === 'background';
+            cellContent += `<div class="task-bar ${task.status} ${isBackground ? 'background' : ''}"
+                 style="left: 2px; width: ${barWidth}px; background-color: ${group.color};"
+                 data-task-id="${task.id}"></div>`;
+          }
+
+          if (task.milestone) {
+            const milestoneDate = parseDate(task.milestone);
+            if (mode === 'week') {
+              milestoneCell = Math.floor((milestoneDate - rangeStart) / (7 * 24 * 60 * 60 * 1000));
+            } else {
+              milestoneCell = Math.floor((milestoneDate - rangeStart) / (24 * 60 * 60 * 1000));
+            }
+            if (i === milestoneCell) {
+              cellContent += `<div class="milestone" style="left: ${cellWidth / 2}px;" data-task-id="${task.id}"></div>`;
+            }
+          }
+        }
+
+        html += `<td class="cell-day ${weekend ? 'weekend' : ''} ${isToday ? 'today' : ''}">${cellContent}</td>`;
+      }
+
+      return html;
+    }
+
+    function renderWeekDayCells(task, group, weekStart) {
       const cellWidth = 80;
-      let html = '<div class="gantt-row">';
+      let html = '';
+
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6);
 
       for (let i = 0; i < 7; i++) {
         const date = new Date(weekStart);
         date.setDate(date.getDate() + i);
         const isToday = isSameDay(date, state.today);
         const weekend = isWeekend(date);
-        html += `<div class="gantt-cell ${weekend ? 'weekend' : ''} ${isToday ? 'today' : ''}"></div>`;
-      }
 
-      // Add task bar
-      if (task.start && task.end) {
-        const taskStart = parseDate(task.start);
-        const taskEnd = parseDate(task.end);
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekEnd.getDate() + 6);
+        let cellContent = '';
 
-        if (taskStart <= weekEnd && taskEnd >= weekStart) {
-          const effectiveStart = taskStart < weekStart ? weekStart : taskStart;
-          const effectiveEnd = taskEnd > weekEnd ? weekEnd : taskEnd;
+        if (task.start && task.end) {
+          const taskStart = parseDate(task.start);
+          const taskEnd = parseDate(task.end);
 
-          const startDay = Math.floor((effectiveStart - weekStart) / (24 * 60 * 60 * 1000));
-          const endDay = Math.floor((effectiveEnd - weekStart) / (24 * 60 * 60 * 1000));
+          if (taskStart <= weekEnd && taskEnd >= weekStart) {
+            const effectiveStart = taskStart < weekStart ? weekStart : taskStart;
+            const effectiveEnd = taskEnd > weekEnd ? weekEnd : taskEnd;
 
-          const startOffset = startDay * cellWidth;
-          const barWidth = (endDay - startDay + 1) * cellWidth - 4;
+            const startDay = Math.floor((effectiveStart - weekStart) / (24 * 60 * 60 * 1000));
+            const endDay = Math.floor((effectiveEnd - weekStart) / (24 * 60 * 60 * 1000));
 
-          const isBackground = task.status === 'background';
-          html += `
-            <div class="task-bar ${task.status} ${isBackground ? 'background' : ''}"
-                 style="left: ${startOffset + 2}px; width: ${barWidth}px; background-color: ${group.color};"
-                 data-task-id="${task.id}">
-              ${task.name}
-            </div>`;
-        }
+            if (i === startDay) {
+              const barWidth = (endDay - startDay + 1) * cellWidth - 4;
+              const isBackground = task.status === 'background';
+              cellContent += `<div class="task-bar ${task.status} ${isBackground ? 'background' : ''}"
+                   style="left: 2px; width: ${barWidth}px; background-color: ${group.color};"
+                   data-task-id="${task.id}">${task.name}</div>`;
+            }
+          }
 
-        // Add milestone if in this week
-        if (task.milestone) {
-          const milestoneDate = parseDate(task.milestone);
-          if (milestoneDate >= weekStart && milestoneDate <= weekEnd) {
-            const milestoneDay = Math.floor((milestoneDate - weekStart) / (24 * 60 * 60 * 1000));
-            const milestoneOffset = milestoneDay * cellWidth + cellWidth / 2;
-            html += `<div class="milestone" style="left: ${milestoneOffset}px;" data-task-id="${task.id}"></div>`;
+          if (task.milestone) {
+            const milestoneDate = parseDate(task.milestone);
+            if (milestoneDate >= weekStart && milestoneDate <= weekEnd) {
+              const milestoneDay = Math.floor((milestoneDate - weekStart) / (24 * 60 * 60 * 1000));
+              if (i === milestoneDay) {
+                cellContent += `<div class="milestone" style="left: ${cellWidth / 2}px;" data-task-id="${task.id}"></div>`;
+              }
+            }
           }
         }
+
+        html += `<td class="cell-day ${weekend ? 'weekend' : ''} ${isToday ? 'today' : ''}">${cellContent}</td>`;
       }
 
-      html += '</div>';
       return html;
     }
 
-    // Add event listeners to task bars
-    function addTaskBarListeners() {
-      document.querySelectorAll('.task-bar, .milestone').forEach(el => {
+    function addEventListeners() {
+      document.querySelectorAll('.task-bar, .milestone, .cell-task').forEach(el => {
         el.addEventListener('mouseenter', (e) => {
-          const taskId = e.target.dataset.taskId;
+          const taskId = e.currentTarget.dataset.taskId;
           const task = getAllTasks().find(t => t.id === taskId);
           if (task) {
-            showTooltip(e, task, { color: task.groupColor, name: task.groupName });
+            showTooltip(e, task);
           }
         });
         el.addEventListener('mouseleave', hideTooltip);
       });
     }
 
-    // Tooltip
-    function showTooltip(e, task, group) {
+    function showTooltip(e, task) {
       const tooltip = document.getElementById('tooltip');
       tooltip.innerHTML = `
-        <div class="tooltip-title" style="color: ${group.color}">${task.name}</div>
-        <div class="tooltip-row"><span>分群：</span><span>${group.name || task.groupName}</span></div>
+        <div class="tooltip-title" style="color: ${task.groupColor}">${task.name}</div>
+        <div class="tooltip-row"><span>分群：</span><span>${task.groupName}</span></div>
         <div class="tooltip-row"><span>狀態：</span><span>${STATUS_CONFIG[task.status].icon} ${STATUS_CONFIG[task.status].label}</span></div>
         <div class="tooltip-row"><span>開始：</span><span>${formatDate(task.start)}</span></div>
         <div class="tooltip-row"><span>結束：</span><span>${formatDate(task.end)}</span></div>
@@ -1075,7 +985,7 @@
         ${task.note ? `<div class="tooltip-row"><span>備註：</span><span>${task.note}</span></div>` : ''}
       `;
 
-      const rect = e.target.getBoundingClientRect();
+      const rect = e.currentTarget.getBoundingClientRect();
       tooltip.style.left = `${rect.left + 10}px`;
       tooltip.style.top = `${rect.bottom + 10}px`;
       tooltip.classList.add('visible');
@@ -1083,30 +993,6 @@
 
     function hideTooltip() {
       document.getElementById('tooltip').classList.remove('visible');
-    }
-
-    // Sync scroll between task list and gantt
-    function syncScroll() {
-      const taskList = document.querySelector('.task-list-content');
-      const ganttContainer = document.getElementById('gantt-container');
-
-      ganttContainer.addEventListener('scroll', () => {
-        taskList.scrollTop = ganttContainer.scrollTop;
-      });
-
-      taskList.addEventListener('scroll', () => {
-        ganttContainer.scrollTop = taskList.scrollTop;
-      });
-    }
-
-    // Render based on current state
-    function render() {
-      renderTaskList();
-      if (state.view === 'year') {
-        renderYearView();
-      } else {
-        renderWeekView();
-      }
     }
 
     // Event Listeners
@@ -1128,11 +1014,6 @@
       render();
     });
 
-    document.getElementById('sort-mode').addEventListener('change', (e) => {
-      state.sortMode = e.target.value;
-      render();
-    });
-
     document.getElementById('week-select').addEventListener('change', (e) => {
       state.selectedWeek = parseInt(e.target.value);
       render();
@@ -1141,7 +1022,6 @@
     // Initialize
     document.getElementById('today-display').textContent = state.today.toLocaleDateString('zh-TW');
     generateWeekOptions();
-    syncScroll();
     render();
   </script>
 </body>
