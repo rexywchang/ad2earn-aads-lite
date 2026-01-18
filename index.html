@@ -624,6 +624,11 @@
       height: 60px;
     }
 
+    .chart-row td.col-group,
+    .chart-row td.col-task {
+      background: var(--bg-secondary);
+    }
+
     .chart-container {
       position: relative;
       height: 60px;
@@ -1333,7 +1338,8 @@
       // Chart row
       html += '<tfoot>';
       html += '<tr class="chart-row">';
-      html += `<td class="col-task" colspan="2"><div class="chart-container"><div class="chart-y-axis" id="chart-y-axis-year"></div></div></td>`;
+      html += `<td class="col-group chart-row-cell"></td>`;
+      html += `<td class="col-task chart-row-cell"><div class="chart-container"><div class="chart-y-axis" id="chart-y-axis-year"></div></div></td>`;
       html += `<td colspan="${numCells}"><canvas id="stats-chart-year" style="width: 100%; height: 60px;"></canvas></td>`;
       html += '</tr>';
 
@@ -1431,7 +1437,8 @@
       // Chart row
       html += '<tfoot>';
       html += '<tr class="chart-row">';
-      html += `<td class="col-task" colspan="2"><div class="chart-container"><div class="chart-y-axis" id="chart-y-axis-week"></div></div></td>`;
+      html += `<td class="col-group chart-row-cell"></td>`;
+      html += `<td class="col-task chart-row-cell"><div class="chart-container"><div class="chart-y-axis" id="chart-y-axis-week"></div></div></td>`;
       html += `<td colspan="7"><canvas id="stats-chart-week" style="width: 100%; height: 60px;"></canvas></td>`;
       html += '</tr>';
 
