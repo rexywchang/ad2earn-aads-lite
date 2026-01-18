@@ -161,12 +161,8 @@ const SELAH_DATA = {
 
 // 狀態配置
 const STATUS_CONFIG = {
-  completed: { label: "已完成", color: "#22c55e", icon: "🟢" },
-  in_progress: { label: "進行中", color: "#3b82f6", icon: "🔵" },
-  background: { label: "背景執行", color: "#3b82f6", icon: "🔷" },
-  paused: { label: "暫停中", color: "#eab308", icon: "🟡" },
-  cancelled: { label: "已取消", color: "#ef4444", icon: "🔴" },
-  not_started: { label: "尚未開始", color: "#9ca3af", icon: "⚪" }
+  in_progress: { label: "運行中", color: "#3b82f6", icon: "🔵" },
+  background: { label: "背景執行", color: "#3b82f6", icon: "🔷" }
 };
 
 // Export for module usage

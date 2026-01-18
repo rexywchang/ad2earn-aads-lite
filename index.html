@@ -126,6 +126,42 @@
       border-color: var(--accent);
     }
 
+    .cycle-btn-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    .cycle-btn {
+      padding: 0.25rem 0.6rem;
+      border: 1px solid var(--border-color);
+      border-radius: 1rem;
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      font-size: 0.6rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-width: 60px;
+    }
+
+    .cycle-btn:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .cycle-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      display: none;
+      z-index: 100;
+      min-width: 80px;
+      margin-top: 2px;
+    }
+
+    .cycle-dropdown.visible {
+      display: block;
+    }
+
     /* Main Container */
     .main-container {
       height: calc(100vh - 70px);
@@ -595,17 +631,6 @@
       );
     }
 
-    .milestone {
-      position: absolute;
-      top: 50%;
-      width: 10px;
-      height: 10px;
-      transform: rotate(45deg) translate(-50%, -50%);
-      transform-origin: top left;
-      background: var(--today);
-      z-index: 6;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-    }
 
     /* Week View */
     .week-view .col-day,
@@ -724,12 +749,6 @@
       );
     }
 
-    .legend-milestone {
-      width: 6px;
-      height: 6px;
-      transform: rotate(45deg);
-      background: var(--today);
-    }
 
     .sponsor {
       display: flex;
@@ -775,15 +794,21 @@
 
   <div class="controls">
     <div class="control-group" id="year-controls">
-      <label>顯示：</label>
-      <select id="display-mode">
-        <option value="day">按天</option>
-        <option value="week">按周</option>
-      </select>
+      <div class="cycle-btn-wrapper">
+        <button class="cycle-btn" id="display-mode-btn">Day</button>
+        <select class="cycle-dropdown" id="display-mode-dropdown">
+          <option value="day">Day</option>
+          <option value="week">Week</option>
+          <option value="biweek">Bi-Week</option>
+          <option value="month">Month</option>
+        </select>
+      </div>
     </div>
     <div class="control-group" id="week-selector" style="display: none;">
-      <label>選擇周：</label>
-      <select id="week-select"></select>
+      <div class="cycle-btn-wrapper">
+        <button class="cycle-btn" id="week-select-btn">WK04</button>
+        <select class="cycle-dropdown" id="week-select"></select>
+      </div>
     </div>
     <div class="control-group">
       <label>今天：</label>
@@ -799,23 +824,11 @@
     <div class="legend">
       <div class="legend-item">
         <div class="legend-color" style="background: #3b82f6;"></div>
-        <span>進行中</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-color" style="background: #22c55e;"></div>
-        <span>已完成</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-color" style="background: #9ca3af;"></div>
-        <span>尚未開始</span>
+        <span>運行中</span>
       </div>
       <div class="legend-item">
         <div class="legend-stripe"></div>
         <span>背景執行</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-milestone"></div>
-        <span>里程碑</span>
       </div>
       <div class="legend-item">
         <div style="width: 12px; height: 6px; background: rgba(245, 158, 11, 0.3); border-radius: 2px;"></div>
@@ -830,10 +843,8 @@
 
   <div class="tooltip" id="tooltip"></div>
   <div class="status-menu" id="status-menu">
-    <div class="status-menu-item" data-status="in_progress">🔵 進行中</div>
+    <div class="status-menu-item" data-status="in_progress">🔵 運行中</div>
     <div class="status-menu-item" data-status="background">🔷 背景執行</div>
-    <div class="status-menu-item" data-status="paused">🟡 暫停中</div>
-    <div class="status-menu-item" data-status="completed">🟢 已完成</div>
   </div>
 
   <div class="delete-zone" id="delete-zone">
@@ -861,17 +872,10 @@
           <input type="date" id="modal-end">
         </div>
         <div class="modal-field">
-          <label>里程碑</label>
-          <input type="date" id="modal-milestone">
-        </div>
-        <div class="modal-field">
           <label>狀態</label>
           <select id="modal-status">
-            <option value="not_started">尚未開始</option>
-            <option value="in_progress">進行中</option>
+            <option value="in_progress">運行中</option>
             <option value="background">背景執行</option>
-            <option value="paused">暫停中</option>
-            <option value="completed">已完成</option>
           </select>
         </div>
         <div class="modal-field">
@@ -1032,13 +1036,26 @@
             </div>
           </th>`;
         }
-      } else {
+      } else if (state.displayMode === 'week') {
         const weeks = Math.ceil(totalDays / 7);
         for (let w = 0; w < weeks; w++) {
           const weekStart = new Date(start);
           weekStart.setDate(weekStart.getDate() + w * 7);
           const weekNum = getWeekNumber(weekStart);
           html += `<th class="col-day"><div class="day-header"><span class="day-name">W${weekNum}</span></div></th>`;
+        }
+      } else if (state.displayMode === 'biweek') {
+        const biweeks = Math.ceil(totalDays / 14);
+        for (let bw = 0; bw < biweeks; bw++) {
+          const bwStart = new Date(start);
+          bwStart.setDate(bwStart.getDate() + bw * 14);
+          const weekNum = getWeekNumber(bwStart);
+          html += `<th class="col-day"><div class="day-header"><span class="day-name">W${weekNum}-${weekNum + 1}</span></div></th>`;
+        }
+      } else if (state.displayMode === 'month') {
+        const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+        for (let m = 0; m < 12; m++) {
+          html += `<th class="col-day"><div class="day-header"><span class="day-name">${months[m]}</span></div></th>`;
         }
       }
 
@@ -1057,10 +1074,11 @@
             </td>`;
           }
 
+          const statusConfig = STATUS_CONFIG[task.status] || STATUS_CONFIG['in_progress'];
           html += `<td class="cell-task ${task.status}" data-task-id="${task.id}" data-group-id="${group.id}" draggable="true">
             <div class="task-content">
               <span class="task-color-dot" style="background: ${group.color}"></span>
-              <span class="task-status">${STATUS_CONFIG[task.status].icon}</span>
+              <span class="task-status">${statusConfig.icon}</span>
               <span class="task-name">${task.name}</span>
               <span class="info-icon" data-task-id="${task.id}" onclick="openModal('${task.id}')">ℹ</span>
             </div>
@@ -1117,10 +1135,11 @@
             </td>`;
           }
 
+          const statusConfig = STATUS_CONFIG[task.status] || STATUS_CONFIG['in_progress'];
           html += `<td class="cell-task ${task.status}" data-task-id="${task.id}" data-group-id="${group.id}" draggable="true">
             <div class="task-content">
               <span class="task-color-dot" style="background: ${group.color}"></span>
-              <span class="task-status">${STATUS_CONFIG[task.status].icon}</span>
+              <span class="task-status">${statusConfig.icon}</span>
               <span class="task-name">${task.name}</span>
               <span class="info-icon" data-task-id="${task.id}" onclick="openModal('${task.id}')">ℹ</span>
             </div>
@@ -1137,54 +1156,19 @@
     }
 
     function renderDayCells(task, group, rangeStart, totalDays, mode) {
-      const cellWidth = mode === 'week' ? 16 : 21;
-      const numCells = mode === 'week' ? Math.ceil(totalDays / 7) : totalDays;
+      const cellWidth = mode === 'week' ? 16 : (mode === 'biweek' ? 8 : (mode === 'month' ? 4 : 21));
+      const numCells = mode === 'week' ? Math.ceil(totalDays / 7) : (mode === 'biweek' ? Math.ceil(totalDays / 14) : (mode === 'month' ? 12 : totalDays));
 
       let html = '';
-      let taskBarHtml = '';
-      let milestoneHtml = '';
-
-      if (task.start && task.end) {
-        const taskStart = parseDate(task.start);
-        const taskEnd = parseDate(task.end);
-
-        let startCell, endCell;
-
-        if (mode === 'week') {
-          startCell = Math.floor((taskStart - rangeStart) / (7 * 24 * 60 * 60 * 1000));
-          endCell = Math.floor((taskEnd - rangeStart) / (7 * 24 * 60 * 60 * 1000));
-        } else {
-          startCell = Math.floor((taskStart - rangeStart) / (24 * 60 * 60 * 1000));
-          endCell = Math.floor((taskEnd - rangeStart) / (24 * 60 * 60 * 1000));
-        }
-
-        const barWidth = (endCell - startCell + 1) * cellWidth - 4;
-        const isBackground = task.status === 'background';
-
-        if (startCell >= 0 && startCell < numCells) {
-          taskBarHtml = `<div class="task-bar ${task.status} ${isBackground ? 'background' : ''}"
-               style="left: 2px; width: ${barWidth}px; background-color: ${group.color};"
-               data-task-id="${task.id}"></div>`;
-        }
-
-        if (task.milestone) {
-          const milestoneDate = parseDate(task.milestone);
-          let milestoneCell;
-          if (mode === 'week') {
-            milestoneCell = Math.floor((milestoneDate - rangeStart) / (7 * 24 * 60 * 60 * 1000));
-          } else {
-            milestoneCell = Math.floor((milestoneDate - rangeStart) / (24 * 60 * 60 * 1000));
-          }
-          if (milestoneCell >= 0 && milestoneCell < numCells) {
-            milestoneHtml = `<div class="milestone" style="left: ${cellWidth / 2}px;" data-task-id="${task.id}"></div>`;
-          }
-        }
-      }
 
       for (let i = 0; i < numCells; i++) {
         const date = new Date(rangeStart);
         if (mode === 'week') {
           date.setDate(date.getDate() + i * 7);
+        } else if (mode === 'biweek') {
+          date.setDate(date.getDate() + i * 14);
+        } else if (mode === 'month') {
+          date.setMonth(date.getMonth() + i);
         } else {
           date.setDate(date.getDate() + i);
         }
@@ -1196,17 +1180,23 @@
         if (task.start && task.end) {
           const taskStart = parseDate(task.start);
           const taskEnd = parseDate(task.end);
-          let startCell, endCell, milestoneCell;
+          let startCell, endCell;
 
           if (mode === 'week') {
             startCell = Math.floor((taskStart - rangeStart) / (7 * 24 * 60 * 60 * 1000));
             endCell = Math.floor((taskEnd - rangeStart) / (7 * 24 * 60 * 60 * 1000));
+          } else if (mode === 'biweek') {
+            startCell = Math.floor((taskStart - rangeStart) / (14 * 24 * 60 * 60 * 1000));
+            endCell = Math.floor((taskEnd - rangeStart) / (14 * 24 * 60 * 60 * 1000));
+          } else if (mode === 'month') {
+            startCell = taskStart.getMonth();
+            endCell = taskEnd.getMonth();
           } else {
             startCell = Math.floor((taskStart - rangeStart) / (24 * 60 * 60 * 1000));
             endCell = Math.floor((taskEnd - rangeStart) / (24 * 60 * 60 * 1000));
           }
 
-          if (i === startCell && task.status !== 'paused') {
+          if (i === startCell) {
             const barWidth = (endCell - startCell + 1) * cellWidth - 4;
             const isBackground = task.status === 'background';
             cellContent += `<div class="task-bar ${task.status} ${isBackground ? 'background' : ''}"
@@ -1215,18 +1205,6 @@
                  <span class="drag-handle left" data-handle="start"></span>
                  <span class="drag-handle right" data-handle="end"></span>
             </div>`;
-          }
-
-          if (task.milestone) {
-            const milestoneDate = parseDate(task.milestone);
-            if (mode === 'week') {
-              milestoneCell = Math.floor((milestoneDate - rangeStart) / (7 * 24 * 60 * 60 * 1000));
-            } else {
-              milestoneCell = Math.floor((milestoneDate - rangeStart) / (24 * 60 * 60 * 1000));
-            }
-            if (i === milestoneCell) {
-              cellContent += `<div class="milestone" style="left: ${cellWidth / 2}px;" data-task-id="${task.id}"></div>`;
-            }
           }
         }
 
@@ -1262,7 +1240,7 @@
             const startDay = Math.floor((effectiveStart - weekStart) / (24 * 60 * 60 * 1000));
             const endDay = Math.floor((effectiveEnd - weekStart) / (24 * 60 * 60 * 1000));
 
-            if (i === startDay && task.status !== 'paused') {
+            if (i === startDay) {
               const barWidth = (endDay - startDay + 1) * cellWidth - 4;
               const isBackground = task.status === 'background';
               cellContent += `<div class="task-bar ${task.status} ${isBackground ? 'background' : ''}"
@@ -1272,16 +1250,6 @@
                    ${task.name}
                    <span class="drag-handle right" data-handle="end"></span>
               </div>`;
-            }
-          }
-
-          if (task.milestone) {
-            const milestoneDate = parseDate(task.milestone);
-            if (milestoneDate >= weekStart && milestoneDate <= weekEnd) {
-              const milestoneDay = Math.floor((milestoneDate - weekStart) / (24 * 60 * 60 * 1000));
-              if (i === milestoneDay) {
-                cellContent += `<div class="milestone" style="left: ${cellWidth / 2}px;" data-task-id="${task.id}"></div>`;
-              }
             }
           }
         }
@@ -1307,7 +1275,7 @@
 
     function addEventListeners() {
       // Tooltip events
-      document.querySelectorAll('.task-bar, .milestone, .cell-task').forEach(el => {
+      document.querySelectorAll('.task-bar, .cell-task').forEach(el => {
         el.addEventListener('mouseenter', (e) => {
           const taskId = e.currentTarget.dataset.taskId;
           const task = getAllTasks().find(t => t.id === taskId);
@@ -1340,14 +1308,20 @@
         el.addEventListener('dragleave', handleTaskDragLeave);
       });
 
-      // Task bar right-click for status menu
+      // Task bar right-click for status menu and double-click to toggle
       document.querySelectorAll('.task-bar').forEach(el => {
         el.addEventListener('contextmenu', handleTaskBarContextMenu);
+        el.addEventListener('dblclick', handleTaskBarDblClick);
       });
 
       // Drag handles for resizing
       document.querySelectorAll('.drag-handle').forEach(el => {
         el.addEventListener('mousedown', handleResizeStart);
+      });
+
+      // Day cell click to set date for tasks without dates
+      document.querySelectorAll('.cell-day').forEach(el => {
+        el.addEventListener('click', handleDayCellClick);
       });
 
       // Double-click to edit group name
@@ -1501,6 +1475,54 @@
       }
     }
 
+    // Task bar double-click to toggle status
+    function handleTaskBarDblClick(e) {
+      e.stopPropagation();
+      const taskId = e.currentTarget.dataset.taskId;
+      const task = findTaskById(taskId);
+      if (task) {
+        task.status = task.status === 'in_progress' ? 'background' : 'in_progress';
+        render();
+        saveData();
+      }
+    }
+
+    // Day cell click to set date for tasks without dates
+    function handleDayCellClick(e) {
+      const row = e.currentTarget.closest('tr');
+      if (!row) return;
+
+      const taskCell = row.querySelector('.cell-task');
+      if (!taskCell) return;
+
+      const taskId = taskCell.dataset.taskId;
+      const task = findTaskById(taskId);
+
+      if (task && (!task.start || !task.end)) {
+        // Find the date for this cell
+        const cellIndex = Array.from(row.children).indexOf(e.currentTarget);
+        const headerRow = document.querySelector('.gantt-table thead tr');
+        const dayHeaders = headerRow.querySelectorAll('.col-day');
+        const dayIndex = cellIndex - 2; // Subtract group and task columns
+
+        if (dayIndex >= 0 && dayIndex < dayHeaders.length) {
+          // Calculate date based on view mode
+          const { start } = state.view === 'week' ? getWeekDateRange() : getYearDateRange();
+          const clickedDate = new Date(start);
+          clickedDate.setDate(clickedDate.getDate() + dayIndex);
+          const dateStr = clickedDate.toISOString().split('T')[0];
+
+          task.start = dateStr;
+          task.end = dateStr;
+          if (!task.status || task.status === 'not_started') {
+            task.status = 'in_progress';
+          }
+          render();
+          saveData();
+        }
+      }
+    }
+
     // Status menu handlers
     function handleTaskBarContextMenu(e) {
       e.preventDefault();
@@ -1598,7 +1620,7 @@
           name: '新專案',
           start: today,
           end: today,
-          status: 'not_started',
+          status: 'in_progress',
           note: ''
         }]
       });
@@ -1639,7 +1661,7 @@
         name: '新專案',
         start: today,
         end: today,
-        status: 'not_started',
+        status: 'in_progress',
         note: ''
       });
 
@@ -1709,8 +1731,7 @@
       document.getElementById('modal-name').value = task.name || '';
       document.getElementById('modal-start').value = task.start || '';
       document.getElementById('modal-end').value = task.end || '';
-      document.getElementById('modal-milestone').value = task.milestone || '';
-      document.getElementById('modal-status').value = task.status || 'not_started';
+      document.getElementById('modal-status').value = task.status || 'in_progress';
       document.getElementById('modal-note').value = task.note || '';
 
       document.getElementById('modal-overlay').classList.add('visible');
@@ -1729,7 +1750,6 @@
       task.name = document.getElementById('modal-name').value;
       task.start = document.getElementById('modal-start').value || null;
       task.end = document.getElementById('modal-end').value || null;
-      task.milestone = document.getElementById('modal-milestone').value || null;
       task.status = document.getElementById('modal-status').value;
       task.note = document.getElementById('modal-note').value;
 
@@ -1789,13 +1809,13 @@
 
     function showTooltip(e, task) {
       const tooltip = document.getElementById('tooltip');
+      const statusConfig = STATUS_CONFIG[task.status] || { icon: '⚪', label: '未設定' };
       tooltip.innerHTML = `
         <div class="tooltip-title" style="color: ${task.groupColor}">${task.name}</div>
         <div class="tooltip-row"><span>分群：</span><span>${task.groupName}</span></div>
-        <div class="tooltip-row"><span>狀態：</span><span>${STATUS_CONFIG[task.status].icon} ${STATUS_CONFIG[task.status].label}</span></div>
+        <div class="tooltip-row"><span>狀態：</span><span>${statusConfig.icon} ${statusConfig.label}</span></div>
         <div class="tooltip-row"><span>開始：</span><span>${formatDate(task.start)}</span></div>
         <div class="tooltip-row"><span>結束：</span><span>${formatDate(task.end)}</span></div>
-        ${task.milestone ? `<div class="tooltip-row"><span>里程碑：</span><span>${formatDate(task.milestone)}</span></div>` : ''}
         ${task.note ? `<div class="tooltip-row"><span>備註：</span><span>${task.note}</span></div>` : ''}
       `;
 
@@ -1823,13 +1843,61 @@
       });
     });
 
-    document.getElementById('display-mode').addEventListener('change', (e) => {
+    // Display mode cycle button
+    const displayModes = ['day', 'week', 'biweek', 'month'];
+    const displayModeLabels = { day: 'Day', week: 'Week', biweek: 'Bi-Week', month: 'Month' };
+    let displayModeClickTimer = null;
+
+    document.getElementById('display-mode-btn').addEventListener('click', (e) => {
+      if (displayModeClickTimer) {
+        clearTimeout(displayModeClickTimer);
+        displayModeClickTimer = null;
+        // Double-click: show dropdown
+        document.getElementById('display-mode-dropdown').classList.toggle('visible');
+      } else {
+        displayModeClickTimer = setTimeout(() => {
+          displayModeClickTimer = null;
+          // Single click: cycle to next
+          const currentIdx = displayModes.indexOf(state.displayMode);
+          state.displayMode = displayModes[(currentIdx + 1) % displayModes.length];
+          document.getElementById('display-mode-btn').textContent = displayModeLabels[state.displayMode];
+          render();
+        }, 250);
+      }
+    });
+
+    document.getElementById('display-mode-dropdown').addEventListener('change', (e) => {
       state.displayMode = e.target.value;
+      document.getElementById('display-mode-btn').textContent = displayModeLabels[state.displayMode];
+      document.getElementById('display-mode-dropdown').classList.remove('visible');
       render();
+    });
+
+    // Week selector cycle button
+    let weekClickTimer = null;
+
+    document.getElementById('week-select-btn').addEventListener('click', (e) => {
+      if (weekClickTimer) {
+        clearTimeout(weekClickTimer);
+        weekClickTimer = null;
+        // Double-click: show dropdown
+        document.getElementById('week-select').classList.toggle('visible');
+      } else {
+        weekClickTimer = setTimeout(() => {
+          weekClickTimer = null;
+          // Single click: next week
+          state.selectedWeek = (state.selectedWeek % 52) + 1;
+          document.getElementById('week-select-btn').textContent = `WK${String(state.selectedWeek).padStart(2, '0')}`;
+          document.getElementById('week-select').value = state.selectedWeek;
+          render();
+        }, 250);
+      }
     });
 
     document.getElementById('week-select').addEventListener('change', (e) => {
       state.selectedWeek = parseInt(e.target.value);
+      document.getElementById('week-select-btn').textContent = `WK${String(state.selectedWeek).padStart(2, '0')}`;
+      document.getElementById('week-select').classList.remove('visible');
       render();
     });
 
