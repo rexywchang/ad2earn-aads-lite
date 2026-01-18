@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Selah - 專案甘特圖</title>
+  <style>
+    :root {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-tertiary: #334155;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --border-color: #475569;
+      --accent: #6366f1;
+      --today: #f59e0b;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans TC', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .logo .subtitle {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+    }
+
+    /* Navigation */
+    .nav-tabs {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .nav-tab {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 0.5rem;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.875rem;
+    }
+
+    .nav-tab:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .nav-tab.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      gap: 1rem;
+      padding: 1rem 2rem;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .control-group label {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+    }
+
+    select, input[type="date"] {
+      padding: 0.375rem 0.75rem;
+      border: 1px solid var(--border-color);
+      border-radius: 0.375rem;
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      font-size: 0.875rem;
+    }
+
+    select:focus, input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    /* Main Container */
+    .main-container {
+      display: flex;
+      height: calc(100vh - 120px);
+      overflow: hidden;
+    }
+
+    /* Task List (Left Panel) */
+    .task-list {
+      width: 300px;
+      min-width: 300px;
+      border-right: 1px solid var(--border-color);
+      overflow-y: auto;
+      background: var(--bg-secondary);
+    }
+
+    .task-list-header {
+      padding: 0.75rem 1rem;
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border-color);
+      font-weight: 600;
+      font-size: 0.875rem;
+      position: sticky;
+      top: 0;
+    }
+
+    .group-header {
+      padding: 0.5rem 1rem;
+      background: var(--bg-tertiary);
+      font-weight: 600;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .group-color {
+      width: 4px;
+      height: 16px;
+      border-radius: 2px;
+    }
+
+    .task-item {
+      padding: 0.625rem 1rem;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.8125rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .task-item:hover {
+      background: var(--bg-tertiary);
+    }
+
+    .task-item.completed {
+      opacity: 0.6;
+    }
+
+    .task-item.completed .task-name {
+      text-decoration: line-through;
+    }
+
+    .task-status {
+      font-size: 0.75rem;
+    }
+
+    .task-name {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Gantt Chart (Right Panel) */
+    .gantt-container {
+      flex: 1;
+      overflow-x: auto;
+      overflow-y: auto;
+    }
+
+    .gantt-chart {
+      display: flex;
+      flex-direction: column;
+      min-width: max-content;
+    }
+
+    /* Timeline Header */
+    .timeline-header {
+      display: flex;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--bg-secondary);
+    }
+
+    .timeline-month {
+      text-align: center;
+      padding: 0.5rem;
+      border-bottom: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color);
+      font-weight: 600;
+      font-size: 0.75rem;
+      background: var(--bg-tertiary);
+    }
+
+    .timeline-days {
+      display: flex;
+    }
+
+    .timeline-day {
+      width: 32px;
+      min-width: 32px;
+      text-align: center;
+      padding: 0.25rem;
+      border-bottom: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color);
+      font-size: 0.625rem;
+      color: var(--text-secondary);
+    }
+
+    .timeline-day.weekend {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .timeline-day.today {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--today);
+      font-weight: 600;
+    }
+
+    /* Gantt Rows */
+    .gantt-body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .gantt-row {
+      display: flex;
+      height: 32px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .gantt-row.group-row {
+      background: var(--bg-tertiary);
+      height: 28px;
+    }
+
+    .gantt-cell {
+      width: 32px;
+      min-width: 32px;
+      border-right: 1px solid var(--border-color);
+      position: relative;
+    }
+
+    .gantt-cell.weekend {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .gantt-cell.today {
+      background: rgba(245, 158, 11, 0.1);
+    }
+
+    /* Task Bar */
+    .task-bar {
+      position: absolute;
+      top: 4px;
+      height: 24px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      font-size: 0.6875rem;
+      color: white;
+      white-space: nowrap;
+      overflow: hidden;
+      z-index: 5;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    .task-bar.completed {
+      opacity: 0.7;
+    }
+
+    .milestone {
+      position: absolute;
+      top: 8px;
+      width: 16px;
+      height: 16px;
+      transform: rotate(45deg) translateX(-50%);
+      background: var(--today);
+      z-index: 6;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Week View Specific */
+    .week-view .gantt-cell {
+      width: 100px;
+      min-width: 100px;
+    }
+
+    .week-view .timeline-day {
+      width: 100px;
+      min-width: 100px;
+      font-size: 0.75rem;
+      padding: 0.5rem;
+    }
+
+    /* Year View - Week Mode */
+    .year-week-view .gantt-cell {
+      width: 24px;
+      min-width: 24px;
+    }
+
+    .year-week-view .timeline-day {
+      width: 24px;
+      min-width: 24px;
+    }
+
+    /* Tooltip */
+    .tooltip {
+      position: fixed;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+      font-size: 0.8125rem;
+      max-width: 280px;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      pointer-events: none;
+      display: none;
+    }
+
+    .tooltip.visible {
+      display: block;
+    }
+
+    .tooltip-title {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .tooltip-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 0.25rem;
+      color: var(--text-secondary);
+    }
+
+    .tooltip-row span:last-child {
+      color: var(--text-primary);
+    }
+
+    /* Legend */
+    .legend {
+      display: flex;
+      gap: 1.5rem;
+      padding: 0.75rem 2rem;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border-color);
+      font-size: 0.75rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      color: var(--text-secondary);
+    }
+
+    .legend-color {
+      width: 16px;
+      height: 8px;
+      border-radius: 2px;
+    }
+
+    .legend-milestone {
+      width: 8px;
+      height: 8px;
+      transform: rotate(45deg);
+      background: var(--today);
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-primary);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--border-color);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .task-list {
+        width: 200px;
+        min-width: 200px;
+      }
+
+      .controls {
+        padding: 0.75rem 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo">
+      <h1>Selah</h1>
+      <span class="subtitle">סֶלָה — 停下，思考，再前行</span>
+    </div>
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-view="year">全年甘特圖</button>
+      <button class="nav-tab" data-view="week">周甘特圖</button>
+    </nav>
+  </header>
+
+  <div class="controls">
+    <div class="control-group" id="year-controls">
+      <label>顯示模式：</label>
+      <select id="display-mode">
+        <option value="day">按天</option>
+        <option value="week">按周</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <label>排序：</label>
+      <select id="sort-mode">
+        <option value="group">按分群</option>
+        <option value="start">按開始日期</option>
+      </select>
+    </div>
+    <div class="control-group" id="week-selector" style="display: none;">
+      <label>選擇周：</label>
+      <input type="date" id="week-date" value="2026-01-20">
+    </div>
+    <div class="control-group">
+      <label>今天：</label>
+      <span id="today-display">2026-01-18</span>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <div class="task-list">
+      <div class="task-list-header">專案列表</div>
+      <div id="task-list-content"></div>
+    </div>
+    <div class="gantt-container">
+      <div class="gantt-chart" id="gantt-chart"></div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-color" style="background: #3b82f6;"></div>
+      <span>進行中</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background: #22c55e;"></div>
+      <span>已完成</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background: #9ca3af;"></div>
+      <span>尚未開始</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-milestone"></div>
+      <span>里程碑</span>
+    </div>
+    <div class="legend-item">
+      <div style="width: 16px; height: 8px; background: rgba(245, 158, 11, 0.3); border-radius: 2px;"></div>
+      <span>今天</span>
+    </div>
+  </div>
+
+  <div class="tooltip" id="tooltip"></div>
+
+  <script src="data.js"></script>
+  <script>
+    // Global State
+    const state = {
+      view: 'year',        // 'year' or 'week'
+      displayMode: 'day',  // 'day' or 'week' (for year view)
+      sortMode: 'group',   // 'group' or 'start'
+      selectedWeek: new Date('2026-01-20'),
+      today: new Date('2026-01-18')
+    };
+
+    // Utility Functions
+    function parseDate(str) {
+      if (!str) return null;
+      return new Date(str);
+    }
+
+    function formatDate(date, format = 'short') {
+      if (!date) return '-';
+      const d = new Date(date);
+      if (format === 'short') {
+        return `${d.getMonth() + 1}/${d.getDate()}`;
+      }
+      return d.toLocaleDateString('zh-TW');
+    }
+
+    function getWeekNumber(date) {
+      const d = new Date(date);
+      d.setHours(0, 0, 0, 0);
+      d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+      const yearStart = new Date(d.getFullYear(), 0, 1);
+      return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    }
+
+    function getWeekStart(date) {
+      const d = new Date(date);
+      const day = d.getDay();
+      const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+      return new Date(d.setDate(diff));
+    }
+
+    function getDaysBetween(start, end) {
+      return Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    }
+
+    function isSameDay(d1, d2) {
+      return d1.getFullYear() === d2.getFullYear() &&
+             d1.getMonth() === d2.getMonth() &&
+             d1.getDate() === d2.getDate();
+    }
+
+    function isWeekend(date) {
+      const day = date.getDay();
+      return day === 0 || day === 6;
+    }
+
+    // Get all tasks flattened with group info
+    function getAllTasks() {
+      const tasks = [];
+      SELAH_DATA.groups.forEach(group => {
+        group.tasks.forEach(task => {
+          tasks.push({
+            ...task,
+            groupId: group.id,
+            groupName: group.name,
+            groupColor: group.color
+          });
+        });
+      });
+      return tasks;
+    }
+
+    // Sort tasks
+    function sortTasks(tasks, mode) {
+      if (mode === 'start') {
+        return [...tasks].sort((a, b) => {
+          if (!a.start && !b.start) return 0;
+          if (!a.start) return 1;
+          if (!b.start) return -1;
+          return new Date(a.start) - new Date(b.start);
+        });
+      }
+      return tasks; // group mode - return as-is
+    }
+
+    // Render Task List
+    function renderTaskList() {
+      const container = document.getElementById('task-list-content');
+      container.innerHTML = '';
+
+      if (state.sortMode === 'group') {
+        SELAH_DATA.groups.forEach(group => {
+          // Group header
+          const groupHeader = document.createElement('div');
+          groupHeader.className = 'group-header';
+          groupHeader.innerHTML = `
+            <div class="group-color" style="background: ${group.color}"></div>
+            ${group.name}
+          `;
+          container.appendChild(groupHeader);
+
+          // Tasks
+          group.tasks.forEach(task => {
+            const taskItem = document.createElement('div');
+            taskItem.className = `task-item ${task.status}`;
+            taskItem.innerHTML = `
+              <span class="task-status">${STATUS_CONFIG[task.status].icon}</span>
+              <span class="task-name">${task.name}</span>
+            `;
+            taskItem.addEventListener('mouseenter', (e) => showTooltip(e, task, group));
+            taskItem.addEventListener('mouseleave', hideTooltip);
+            container.appendChild(taskItem);
+          });
+        });
+      } else {
+        const allTasks = sortTasks(getAllTasks(), 'start');
+        allTasks.forEach(task => {
+          const taskItem = document.createElement('div');
+          taskItem.className = `task-item ${task.status}`;
+          taskItem.innerHTML = `
+            <span class="task-status">${STATUS_CONFIG[task.status].icon}</span>
+            <span class="task-name">${task.name}</span>
+          `;
+          taskItem.addEventListener('mouseenter', (e) => showTooltip(e, task, { color: task.groupColor, name: task.groupName }));
+          taskItem.addEventListener('mouseleave', hideTooltip);
+          container.appendChild(taskItem);
+        });
+      }
+    }
+
+    // Generate date range for year view
+    function getYearDateRange() {
+      const year = SELAH_DATA.meta.year;
+      const start = new Date(year, 0, 1);
+      const end = new Date(year, 11, 31);
+      return { start, end };
+    }
+
+    // Generate date range for week view
+    function getWeekDateRange() {
+      const weekStart = getWeekStart(state.selectedWeek);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+      return { start: weekStart, end: weekEnd };
+    }
+
+    // Render Year View
+    function renderYearView() {
+      const chart = document.getElementById('gantt-chart');
+      chart.className = state.displayMode === 'week' ? 'gantt-chart year-week-view' : 'gantt-chart';
+
+      const { start, end } = getYearDateRange();
+      const totalDays = getDaysBetween(start, end);
+
+      let html = '<div class="timeline-header"><div class="timeline-days">';
+
+      // Generate timeline header
+      if (state.displayMode === 'day') {
+        let currentMonth = -1;
+        for (let i = 0; i < totalDays; i++) {
+          const date = new Date(start);
+          date.setDate(date.getDate() + i);
+
+          const isToday = isSameDay(date, state.today);
+          const weekend = isWeekend(date);
+
+          html += `<div class="timeline-day ${weekend ? 'weekend' : ''} ${isToday ? 'today' : ''}"
+                       data-date="${date.toISOString().split('T')[0]}">
+            ${date.getDate()}${date.getDate() === 1 ? '<br>' + (date.getMonth() + 1) + '月' : ''}
+          </div>`;
+        }
+      } else {
+        // Week mode
+        const weeks = Math.ceil(totalDays / 7);
+        for (let w = 0; w < weeks; w++) {
+          const weekStart = new Date(start);
+          weekStart.setDate(weekStart.getDate() + w * 7);
+          const weekNum = getWeekNumber(weekStart);
+          html += `<div class="timeline-day">W${weekNum}</div>`;
+        }
+      }
+
+      html += '</div></div>';
+
+      // Render rows
+      html += '<div class="gantt-body">';
+
+      if (state.sortMode === 'group') {
+        SELAH_DATA.groups.forEach(group => {
+          // Group row
+          html += `<div class="gantt-row group-row">`;
+          if (state.displayMode === 'day') {
+            for (let i = 0; i < totalDays; i++) {
+              const date = new Date(start);
+              date.setDate(date.getDate() + i);
+              const isToday = isSameDay(date, state.today);
+              const weekend = isWeekend(date);
+              html += `<div class="gantt-cell ${weekend ? 'weekend' : ''} ${isToday ? 'today' : ''}"></div>`;
+            }
+          } else {
+            const weeks = Math.ceil(totalDays / 7);
+            for (let w = 0; w < weeks; w++) {
+              html += `<div class="gantt-cell"></div>`;
+            }
+          }
+          html += '</div>';
+
+          // Task rows
+          group.tasks.forEach(task => {
+            html += renderTaskRow(task, group, start, totalDays);
+          });
+        });
+      } else {
+        const allTasks = sortTasks(getAllTasks(), 'start');
+        allTasks.forEach(task => {
+          html += renderTaskRow(task, { color: task.groupColor }, start, totalDays);
+        });
+      }
+
+      html += '</div>';
+      chart.innerHTML = html;
+
+      // Add event listeners for task bars
+      chart.querySelectorAll('.task-bar, .milestone').forEach(el => {
+        el.addEventListener('mouseenter', (e) => {
+          const taskId = e.target.dataset.taskId;
+          const task = getAllTasks().find(t => t.id === taskId);
+          if (task) {
+            showTooltip(e, task, { color: task.groupColor, name: task.groupName });
+          }
+        });
+        el.addEventListener('mouseleave', hideTooltip);
+      });
+    }
+
+    // Render single task row
+    function renderTaskRow(task, group, rangeStart, totalDays) {
+      let html = `<div class="gantt-row">`;
+
+      const cellWidth = state.displayMode === 'week' ? 24 : 32;
+      const numCells = state.displayMode === 'week' ? Math.ceil(totalDays / 7) : totalDays;
+
+      for (let i = 0; i < numCells; i++) {
+        const date = new Date(rangeStart);
+        if (state.displayMode === 'week') {
+          date.setDate(date.getDate() + i * 7);
+        } else {
+          date.setDate(date.getDate() + i);
+        }
+        const isToday = state.displayMode === 'day' && isSameDay(date, state.today);
+        const weekend = state.displayMode === 'day' && isWeekend(date);
+        html += `<div class="gantt-cell ${weekend ? 'weekend' : ''} ${isToday ? 'today' : ''}"></div>`;
+      }
+
+      // Add task bar if has dates
+      if (task.start && task.end) {
+        const taskStart = parseDate(task.start);
+        const taskEnd = parseDate(task.end);
+
+        let startOffset, barWidth;
+
+        if (state.displayMode === 'week') {
+          const startWeek = Math.floor((taskStart - rangeStart) / (7 * 24 * 60 * 60 * 1000));
+          const endWeek = Math.floor((taskEnd - rangeStart) / (7 * 24 * 60 * 60 * 1000));
+          startOffset = startWeek * cellWidth;
+          barWidth = (endWeek - startWeek + 1) * cellWidth - 4;
+        } else {
+          const startDay = Math.floor((taskStart - rangeStart) / (24 * 60 * 60 * 1000));
+          const duration = getDaysBetween(taskStart, taskEnd);
+          startOffset = startDay * cellWidth;
+          barWidth = duration * cellWidth - 4;
+        }
+
+        if (startOffset >= 0 && barWidth > 0) {
+          html = html.replace('</div>', `
+            <div class="task-bar ${task.status}"
+                 style="left: ${startOffset + 2}px; width: ${barWidth}px; background: ${group.color};"
+                 data-task-id="${task.id}">
+            </div>
+          </div>`);
+        }
+
+        // Add milestone
+        if (task.milestone) {
+          const milestoneDate = parseDate(task.milestone);
+          let milestoneOffset;
+          if (state.displayMode === 'week') {
+            const milestoneWeek = Math.floor((milestoneDate - rangeStart) / (7 * 24 * 60 * 60 * 1000));
+            milestoneOffset = milestoneWeek * cellWidth + cellWidth / 2;
+          } else {
+            const milestoneDay = Math.floor((milestoneDate - rangeStart) / (24 * 60 * 60 * 1000));
+            milestoneOffset = milestoneDay * cellWidth + cellWidth / 2;
+          }
+          html = html.replace('</div></div>', `
+            <div class="milestone" style="left: ${milestoneOffset}px;" data-task-id="${task.id}"></div>
+          </div></div>`);
+        }
+      }
+
+      html += '</div>';
+      return html;
+    }
+
+    // Render Week View
+    function renderWeekView() {
+      const chart = document.getElementById('gantt-chart');
+      chart.className = 'gantt-chart week-view';
+
+      const { start, end } = getWeekDateRange();
+      const days = ['一', '二', '三', '四', '五', '六', '日'];
+
+      let html = '<div class="timeline-header"><div class="timeline-days">';
+
+      // Generate day headers
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(start);
+        date.setDate(date.getDate() + i);
+        const isToday = isSameDay(date, state.today);
+        const weekend = isWeekend(date);
+        html += `<div class="timeline-day ${weekend ? 'weekend' : ''} ${isToday ? 'today' : ''}">
+          ${days[i]} (${date.getMonth() + 1}/${date.getDate()})
+        </div>`;
+      }
+
+      html += '</div></div>';
+
+      // Render rows
+      html += '<div class="gantt-body">';
+
+      const allTasks = state.sortMode === 'group' ? getAllTasks() : sortTasks(getAllTasks(), 'start');
+
+      if (state.sortMode === 'group') {
+        SELAH_DATA.groups.forEach(group => {
+          group.tasks.forEach(task => {
+            html += renderWeekTaskRow(task, group, start);
+          });
+        });
+      } else {
+        allTasks.forEach(task => {
+          html += renderWeekTaskRow(task, { color: task.groupColor }, start);
+        });
+      }
+
+      html += '</div>';
+      chart.innerHTML = html;
+
+      // Add event listeners
+      chart.querySelectorAll('.task-bar, .milestone').forEach(el => {
+        el.addEventListener('mouseenter', (e) => {
+          const taskId = e.target.dataset.taskId;
+          const task = getAllTasks().find(t => t.id === taskId);
+          if (task) {
+            showTooltip(e, task, { color: task.groupColor, name: task.groupName });
+          }
+        });
+        el.addEventListener('mouseleave', hideTooltip);
+      });
+    }
+
+    // Render week task row
+    function renderWeekTaskRow(task, group, weekStart) {
+      let html = '<div class="gantt-row">';
+      const cellWidth = 100;
+
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(weekStart);
+        date.setDate(date.getDate() + i);
+        const isToday = isSameDay(date, state.today);
+        const weekend = isWeekend(date);
+        html += `<div class="gantt-cell ${weekend ? 'weekend' : ''} ${isToday ? 'today' : ''}"></div>`;
+      }
+
+      // Add task bar
+      if (task.start && task.end) {
+        const taskStart = parseDate(task.start);
+        const taskEnd = parseDate(task.end);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 6);
+
+        // Check if task overlaps with this week
+        if (taskStart <= weekEnd && taskEnd >= weekStart) {
+          const effectiveStart = taskStart < weekStart ? weekStart : taskStart;
+          const effectiveEnd = taskEnd > weekEnd ? weekEnd : taskEnd;
+
+          const startDay = Math.floor((effectiveStart - weekStart) / (24 * 60 * 60 * 1000));
+          const endDay = Math.floor((effectiveEnd - weekStart) / (24 * 60 * 60 * 1000));
+
+          const startOffset = startDay * cellWidth;
+          const barWidth = (endDay - startDay + 1) * cellWidth - 4;
+
+          html = html.replace('</div>', `
+            <div class="task-bar ${task.status}"
+                 style="left: ${startOffset + 2}px; width: ${barWidth}px; background: ${group.color};"
+                 data-task-id="${task.id}">
+              ${task.name}
+            </div>
+          </div>`);
+        }
+
+        // Add milestone if in this week
+        if (task.milestone) {
+          const milestoneDate = parseDate(task.milestone);
+          if (milestoneDate >= weekStart && milestoneDate <= weekEnd) {
+            const milestoneDay = Math.floor((milestoneDate - weekStart) / (24 * 60 * 60 * 1000));
+            const milestoneOffset = milestoneDay * cellWidth + cellWidth / 2;
+            html = html.replace('</div></div>', `
+              <div class="milestone" style="left: ${milestoneOffset}px;" data-task-id="${task.id}"></div>
+            </div></div>`);
+          }
+        }
+      }
+
+      html += '</div>';
+      return html;
+    }
+
+    // Tooltip
+    function showTooltip(e, task, group) {
+      const tooltip = document.getElementById('tooltip');
+      tooltip.innerHTML = `
+        <div class="tooltip-title" style="color: ${group.color}">${task.name}</div>
+        <div class="tooltip-row"><span>分群：</span><span>${group.name || task.groupName}</span></div>
+        <div class="tooltip-row"><span>狀態：</span><span>${STATUS_CONFIG[task.status].icon} ${STATUS_CONFIG[task.status].label}</span></div>
+        <div class="tooltip-row"><span>開始：</span><span>${formatDate(task.start)}</span></div>
+        <div class="tooltip-row"><span>結束：</span><span>${formatDate(task.end)}</span></div>
+        ${task.milestone ? `<div class="tooltip-row"><span>里程碑：</span><span>${formatDate(task.milestone)}</span></div>` : ''}
+        ${task.note ? `<div class="tooltip-row"><span>備註：</span><span>${task.note}</span></div>` : ''}
+      `;
+
+      const rect = e.target.getBoundingClientRect();
+      tooltip.style.left = `${rect.left + 10}px`;
+      tooltip.style.top = `${rect.bottom + 10}px`;
+      tooltip.classList.add('visible');
+    }
+
+    function hideTooltip() {
+      document.getElementById('tooltip').classList.remove('visible');
+    }
+
+    // Render based on current state
+    function render() {
+      renderTaskList();
+      if (state.view === 'year') {
+        renderYearView();
+      } else {
+        renderWeekView();
+      }
+    }
+
+    // Event Listeners
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        e.target.classList.add('active');
+        state.view = e.target.dataset.view;
+
+        // Toggle controls visibility
+        document.getElementById('year-controls').style.display = state.view === 'year' ? 'flex' : 'none';
+        document.getElementById('week-selector').style.display = state.view === 'week' ? 'flex' : 'none';
+
+        render();
+      });
+    });
+
+    document.getElementById('display-mode').addEventListener('change', (e) => {
+      state.displayMode = e.target.value;
+      render();
+    });
+
+    document.getElementById('sort-mode').addEventListener('change', (e) => {
+      state.sortMode = e.target.value;
+      render();
+    });
+
+    document.getElementById('week-date').addEventListener('change', (e) => {
+      state.selectedWeek = new Date(e.target.value);
+      render();
+    });
+
+    // Initial render
+    document.getElementById('today-display').textContent = state.today.toLocaleDateString('zh-TW');
+    render();
+  </script>
+</body>
+</html>
