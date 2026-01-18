@@ -26,12 +26,18 @@
       box-sizing: border-box;
     }
 
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans TC', sans-serif;
       background: var(--bg-primary);
       color: var(--text-primary);
       font-size: 0.67rem;
-      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
     /* Header */
@@ -180,8 +186,9 @@
 
     /* Main Container */
     .main-container {
-      height: calc(100vh - 70px);
+      flex: 1;
       overflow: auto;
+      min-height: 0;
     }
 
     /* Gantt Table */
@@ -570,7 +577,11 @@
       overflow: hidden;
       z-index: 5;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-      cursor: pointer;
+      cursor: grab;
+    }
+
+    .task-bar:active {
+      cursor: grabbing;
     }
 
     .task-bar.completed {
@@ -1300,7 +1311,7 @@
     let resizeState = {
       active: false,
       taskId: null,
-      handle: null,
+      handle: null,  // 'start', 'end', or 'move' (for whole bar drag)
       startX: null
     };
 
@@ -1343,9 +1354,10 @@
       document.querySelectorAll('.task-bar').forEach(el => {
         el.addEventListener('contextmenu', handleTaskBarContextMenu);
         el.addEventListener('dblclick', handleTaskBarDblClick);
+        el.addEventListener('mousedown', handleBarMoveStart);
       });
 
-      // Drag handles for resizing
+      // Drag handles for resizing (stop propagation to prevent bar move)
       document.querySelectorAll('.drag-handle').forEach(el => {
         el.addEventListener('mousedown', handleResizeStart);
       });
@@ -1572,9 +1584,30 @@
       menu.classList.add('visible');
     }
 
-    // Resize handlers
+    // Bar move handler (drag whole bar to shift dates)
+    function handleBarMoveStart(e) {
+      // Ignore if clicking on drag handles
+      if (e.target.classList.contains('drag-handle')) return;
+      // Ignore right-click
+      if (e.button !== 0) return;
+
+      e.preventDefault();
+      const taskBar = e.currentTarget;
+      resizeState = {
+        active: true,
+        taskId: taskBar.dataset.taskId,
+        handle: 'move',
+        startX: e.clientX
+      };
+
+      document.addEventListener('mousemove', handleResizeMove);
+      document.addEventListener('mouseup', handleResizeEnd);
+    }
+
+    // Resize handlers (for drag handles)
     function handleResizeStart(e) {
       e.stopPropagation();
+      e.preventDefault();
       const taskBar = e.target.closest('.task-bar');
       resizeState = {
         active: true,
@@ -1589,7 +1622,7 @@
 
     function handleResizeMove(e) {
       if (!resizeState.active) return;
-      // Visual feedback while dragging
+      e.preventDefault();
     }
 
     function handleResizeEnd(e) {
@@ -1605,7 +1638,13 @@
           const startDate = new Date(task.start);
           const endDate = new Date(task.end);
 
-          if (resizeState.handle === 'start') {
+          if (resizeState.handle === 'move') {
+            // Move whole bar (shift both dates)
+            startDate.setDate(startDate.getDate() + daysDelta);
+            endDate.setDate(endDate.getDate() + daysDelta);
+            task.start = startDate.toISOString().split('T')[0];
+            task.end = endDate.toISOString().split('T')[0];
+          } else if (resizeState.handle === 'start') {
             startDate.setDate(startDate.getDate() + daysDelta);
             if (startDate <= endDate) {
               task.start = startDate.toISOString().split('T')[0];
