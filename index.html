@@ -16,8 +16,6 @@
       --today: #f59e0b;
       --cell-width: 21px;
       --row-height: 22px;
-      --group-col-width: 60px;
-      --task-col-width: 120px;
     }
 
     * {
@@ -194,7 +192,7 @@
     /* Gantt Table */
     .gantt-table {
       border-collapse: collapse;
-      table-layout: fixed;
+      table-layout: auto;
     }
 
     .gantt-table th,
@@ -219,10 +217,8 @@
       padding: 2px;
     }
 
-    .gantt-table thead th.col-group {
-      white-space: nowrap;
-    }
-
+    .gantt-table thead th.col-category,
+    .gantt-table thead th.col-project,
     .gantt-table thead th.col-task {
       white-space: nowrap;
     }
@@ -261,17 +257,15 @@
       color: var(--today);
     }
 
-    /* Group cell (merged) */
-    .cell-group {
-      background: var(--bg-tertiary);
+    /* Category cell (merged) - visual styling */
+    .cell-category {
       font-size: 0.5rem;
       font-weight: 600;
       color: var(--text-secondary);
       padding: 0;
-      position: relative;
     }
 
-    .group-color-bar {
+    .category-color-bar {
       width: 4px;
       height: 100%;
       position: absolute;
@@ -279,17 +273,62 @@
       top: 0;
     }
 
-    .group-name {
+    .category-name {
       padding: 2px 6px 2px 10px;
       white-space: nowrap;
     }
 
-    .cell-group.dragging {
+    .cell-category.dragging {
       opacity: 0.5;
     }
 
-    .cell-group.drag-over {
-      background: var(--accent);
+    .cell-category.drag-over {
+      background: var(--accent) !important;
+    }
+
+    /* Merged cell visual effect - hide internal borders */
+    .cell-category.merge-continue {
+      border-top: none !important;
+    }
+
+    .cell-project.merge-continue {
+      border-top: none !important;
+    }
+
+    .cell-project.dragging {
+      opacity: 0.5;
+    }
+
+    .cell-project.drag-over {
+      background: var(--accent) !important;
+    }
+
+    /* Project cell - visual styling */
+    .cell-project {
+      text-align: left;
+      padding: 0 6px;
+      font-size: 0.55rem;
+      white-space: nowrap;
+    }
+
+    .project-name {
+      white-space: nowrap;
+    }
+
+    .cell-project.completed {
+      opacity: 0.6;
+    }
+
+    .cell-project.completed .project-name {
+      text-decoration: line-through;
+    }
+
+    .cell-task.completed {
+      opacity: 0.6;
+    }
+
+    .cell-task.completed .task-name {
+      text-decoration: line-through;
     }
 
     /* Add buttons */
@@ -563,23 +602,45 @@
     }
 
     /* Frozen columns */
-    .cell-group, .col-group {
-      position: sticky;
-      left: 0;
+    .col-category,
+    .cell-category {
+      position: sticky !important;
+      left: 0 !important;
       z-index: 10;
-      background: var(--bg-secondary);
+      background: var(--bg-tertiary) !important;
+      white-space: nowrap;
     }
 
-    .cell-task, .col-task {
-      position: sticky;
-      left: var(--group-col-width);
-      z-index: 10;
-      background: var(--bg-secondary);
+    .col-project,
+    .cell-project {
+      position: sticky !important;
+      z-index: 9;
+      background: var(--bg-secondary) !important;
+      white-space: nowrap;
     }
 
-    .gantt-table thead th.col-group,
+    .col-task,
+    .cell-task {
+      position: sticky !important;
+      z-index: 8;
+      background: var(--bg-secondary) !important;
+      white-space: nowrap;
+    }
+
+    /* Header frozen columns need higher z-index */
+    .gantt-table thead th.col-category,
+    .gantt-table thead th.col-project,
     .gantt-table thead th.col-task {
       z-index: 25;
+      background: var(--bg-tertiary) !important;
+    }
+
+    /* Footer frozen columns */
+    .gantt-table tfoot td.col-category,
+    .gantt-table tfoot td.col-project,
+    .gantt-table tfoot td.col-task {
+      z-index: 16;
+      background: var(--bg-secondary) !important;
     }
 
     /* Stats Row */
@@ -624,7 +685,8 @@
       height: 60px;
     }
 
-    .chart-row td.col-group,
+    .chart-row td.col-category,
+    .chart-row td.col-project,
     .chart-row td.col-task {
       background: var(--bg-secondary);
     }
@@ -905,13 +967,13 @@
       <span class="subtitle">סֶלָה — 停下，思考，再前行</span>
     </div>
     <nav class="nav-tabs">
-      <button class="nav-tab active" data-view="year">全年甘特圖</button>
-      <button class="nav-tab" data-view="week">周甘特圖</button>
+      <button class="nav-tab active" data-view="week">雙周甘特圖</button>
+      <button class="nav-tab" data-view="year">全年甘特圖</button>
     </nav>
   </header>
 
   <div class="controls">
-    <div class="control-group" id="year-controls">
+    <div class="control-group" id="year-controls" style="display: none;">
       <div class="cycle-btn-wrapper">
         <button class="cycle-btn" id="display-mode-btn">Day</button>
         <select class="cycle-dropdown" id="display-mode-dropdown">
@@ -922,7 +984,7 @@
         </select>
       </div>
     </div>
-    <div class="control-group" id="week-selector" style="display: none;">
+    <div class="control-group" id="week-selector">
       <div class="cycle-btn-wrapper">
         <button class="cycle-btn" id="week-select-btn">WK04</button>
         <select class="cycle-dropdown" id="week-select"></select>
@@ -946,11 +1008,11 @@
     <div class="legend">
       <div class="legend-item">
         <div class="legend-color" style="background: #3b82f6;"></div>
-        <span>運行中</span>
+        <span>執行</span>
       </div>
       <div class="legend-item">
         <div class="legend-stripe"></div>
-        <span>背景執行</span>
+        <span>管理</span>
       </div>
       <div class="legend-item">
         <div style="width: 12px; height: 6px; background: rgba(245, 158, 11, 0.3); border-radius: 2px;"></div>
@@ -965,9 +1027,9 @@
 
   <div class="tooltip" id="tooltip"></div>
   <div class="status-menu" id="status-menu">
-    <div class="status-menu-item" data-status="in_progress">🔵 運行中</div>
-    <div class="status-menu-item" data-status="background">🔷 背景執行</div>
-    <div class="status-menu-item" data-status="not_started">⚪ 未開始</div>
+    <div class="status-menu-item" data-status="in_progress">🔵 執行</div>
+    <div class="status-menu-item" data-status="background">🔷 管理</div>
+    <div class="status-menu-item" data-status="not_started">⚪ 待安排</div>
   </div>
 
   <div class="delete-zone" id="delete-zone">
@@ -978,12 +1040,16 @@
   <div class="modal-overlay" id="modal-overlay">
     <div class="modal">
       <div class="modal-header">
-        <span class="modal-title">編輯專案</span>
+        <span class="modal-title">編輯工作項目</span>
         <button class="modal-close" onclick="closeModal()">&times;</button>
       </div>
       <div class="modal-body">
         <div class="modal-field">
-          <label>名稱</label>
+          <label>專案</label>
+          <input type="text" id="modal-project">
+        </div>
+        <div class="modal-field">
+          <label>工作項目</label>
           <input type="text" id="modal-name">
         </div>
         <div class="modal-field">
@@ -997,9 +1063,9 @@
         <div class="modal-field">
           <label>狀態</label>
           <select id="modal-status">
-            <option value="in_progress">運行中</option>
-            <option value="background">背景執行</option>
-            <option value="not_started">未開始</option>
+            <option value="in_progress">執行</option>
+            <option value="background">管理</option>
+            <option value="not_started">待安排</option>
           </select>
         </div>
         <div class="modal-field">
@@ -1016,17 +1082,17 @@
 
   <script>
     // Data will be loaded from data.json
-    let SELAH_DATA = { meta: {}, groups: [] };
+    let SELAH_DATA = { meta: { year: 2026 }, categories: [] };
 
     // Status configuration
     const STATUS_CONFIG = {
-      in_progress: { label: "運行中", color: "#3b82f6", icon: "🔵" },
-      background: { label: "背景執行", color: "#3b82f6", icon: "🔷" },
-      not_started: { label: "未開始", color: "#9ca3af", icon: "⚪" }
+      in_progress: { label: "執行", color: "#3b82f6", icon: "🔵" },
+      background: { label: "管理", color: "#3b82f6", icon: "🔷" },
+      not_started: { label: "待安排", color: "#9ca3af", icon: "⚪" }
     };
 
     const state = {
-      view: 'year',
+      view: 'week',
       displayMode: 'day',
       selectedWeek: 4,
       today: new Date('2026-01-18')
@@ -1037,7 +1103,9 @@
 
     function parseDate(str) {
       if (!str) return null;
-      return new Date(str);
+      // Parse as local date to avoid timezone issues
+      const parts = str.split('-');
+      return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
     }
 
     function formatDate(date, format = 'short') {
@@ -1098,13 +1166,17 @@
 
     function getAllTasks() {
       const tasks = [];
-      SELAH_DATA.groups.forEach(group => {
-        group.tasks.forEach(task => {
-          tasks.push({
-            ...task,
-            groupId: group.id,
-            groupName: group.name,
-            groupColor: group.color
+      SELAH_DATA.categories.forEach(category => {
+        category.projects.forEach(project => {
+          project.tasks.forEach(task => {
+            tasks.push({
+              ...task,
+              categoryId: category.id,
+              categoryName: category.name,
+              categoryColor: category.color,
+              projectId: project.id,
+              projectName: project.name
+            });
           });
         });
       });
@@ -1128,7 +1200,7 @@
     function getWeekDateRange() {
       const weekStart = getWeekStartByNumber(SELAH_DATA.meta.year, state.selectedWeek);
       const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekEnd.getDate() + 6);
+      weekEnd.setDate(weekEnd.getDate() + 13); // Two weeks (14 days)
       return { start: weekStart, end: weekEnd };
     }
 
@@ -1137,17 +1209,19 @@
       let inProgress = 0;
       let background = 0;
 
-      SELAH_DATA.groups.forEach(group => {
-        group.tasks.forEach(task => {
-          if (!task.start || !task.end) return;
-          const taskStart = parseDate(task.start);
-          const taskEnd = parseDate(task.end);
+      SELAH_DATA.categories.forEach(category => {
+        category.projects.forEach(project => {
+          project.tasks.forEach(task => {
+            if (!task.start || !task.end) return;
+            const taskStart = parseDate(task.start);
+            const taskEnd = parseDate(task.end);
 
-          // Check if task overlaps with range
-          if (taskStart <= rangeEnd && taskEnd >= rangeStart) {
-            if (task.status === 'in_progress') inProgress++;
-            else if (task.status === 'background') background++;
-          }
+            // Check if task overlaps with range
+            if (taskStart <= rangeEnd && taskEnd >= rangeStart) {
+              if (task.status === 'in_progress') inProgress++;
+              else if (task.status === 'background') background++;
+            }
+          });
         });
       });
 
@@ -1226,6 +1300,59 @@
       }
 
       addEventListeners();
+      updateFrozenColumnPositions();
+
+      // Scroll to today's week when in year view with day mode
+      if (state.view === 'year' && state.displayMode === 'day') {
+        scrollToToday();
+      }
+    }
+
+    // Scroll the container so today's week is at the left edge
+    function scrollToToday() {
+      const container = document.querySelector('.main-container');
+      if (!container) return;
+
+      const { start } = getYearDateRange();
+      const daysFromStart = Math.floor((state.today - start) / (24 * 60 * 60 * 1000));
+
+      // Find the start of today's week (Monday)
+      const todayDayOfWeek = state.today.getDay(); // 0 = Sunday
+      const daysToMonday = todayDayOfWeek === 0 ? 6 : todayDayOfWeek - 1;
+      const weekStartDay = daysFromStart - daysToMonday;
+
+      // Each day cell is ~21px wide (var(--cell-width))
+      const cellWidth = 21;
+      // We want the previous week's Sunday to be hidden, so scroll to weekStartDay - 1
+      const scrollPosition = Math.max(0, (weekStartDay - 1) * cellWidth);
+
+      container.scrollLeft = scrollPosition;
+    }
+
+    // Update frozen column left positions based on actual rendered widths
+    function updateFrozenColumnPositions() {
+      const table = document.getElementById('gantt-table');
+      if (!table) return;
+
+      // Get the header cells to measure widths
+      const categoryHeader = table.querySelector('.col-category');
+      const projectHeader = table.querySelector('.col-project');
+
+      if (!categoryHeader || !projectHeader) return;
+
+      // Measure actual widths
+      const categoryWidth = categoryHeader.offsetWidth;
+      const projectWidth = projectHeader.offsetWidth;
+
+      // Update left positions for project column
+      document.querySelectorAll('.col-project, .cell-project').forEach(el => {
+        el.style.left = categoryWidth + 'px';
+      });
+
+      // Update left positions for task column
+      document.querySelectorAll('.col-task, .cell-task').forEach(el => {
+        el.style.left = (categoryWidth + projectWidth) + 'px';
+      });
     }
 
     function renderYearView(table) {
@@ -1233,8 +1360,9 @@
       const totalDays = getDaysBetween(start, end);
 
       let html = '<thead><tr>';
-      html += '<th class="col-group"><div class="header-with-add">群組 <button class="add-btn" onclick="addNewGroup()">+</button></div></th>';
-      html += '<th class="col-task"><div class="header-with-add">專案 <button class="add-btn" onclick="addNewTask()">+</button></div></th>';
+      html += '<th class="col-category"><div class="header-with-add">類別 <button class="add-btn" onclick="addNewCategory()">+</button></div></th>';
+      html += '<th class="col-project"><div class="header-with-add">專案 <button class="add-btn" onclick="addNewProject()">+</button></div></th>';
+      html += '<th class="col-task"><div class="header-with-add">工作項目 <button class="add-btn" onclick="addNewTask()">+</button></div></th>';
 
       if (state.displayMode === 'day') {
         for (let i = 0; i < totalDays; i++) {
@@ -1276,32 +1404,52 @@
 
       html += '</tr></thead><tbody>';
 
-      SELAH_DATA.groups.forEach(group => {
-        const taskCount = group.tasks.length;
+      SELAH_DATA.categories.forEach(category => {
+        // Sort projects by earliest task start date
+        const sortedProjects = getSortedProjects(category);
+        let categoryRowIdx = 0;
 
-        group.tasks.forEach((task, idx) => {
-          html += '<tr>';
+        sortedProjects.forEach((project, projectIdx) => {
+          // Sort tasks within project
+          const sortedTasks = sortTasks(project.tasks);
+          const projectCompleted = isProjectCompleted(project);
 
-          if (idx === 0) {
-            html += `<td class="cell-group" rowspan="${taskCount}" draggable="true" data-group-id="${group.id}">
-              <span class="group-color-bar" style="background: ${group.color}"></span>
-              <span class="group-name">${group.name}</span>
+          sortedTasks.forEach((task, taskIdx) => {
+            const categoryMergeClass = categoryRowIdx === 0 ? '' : ' merge-continue';
+            const projectMergeClass = taskIdx === 0 ? '' : ' merge-continue';
+            const projectCompletedClass = projectCompleted ? ' completed' : '';
+
+            html += '<tr>';
+
+            // Category cell - repeated in each row for proper sticky behavior
+            html += `<td class="cell-category${categoryMergeClass}" draggable="true" data-category-id="${category.id}">
+              <span class="category-color-bar" style="background: ${category.color}"></span>
+              <span class="category-name">${categoryRowIdx === 0 ? category.name : ''}</span>
             </td>`;
-          }
 
-          const statusConfig = STATUS_CONFIG[task.status] || STATUS_CONFIG['in_progress'];
-          html += `<td class="cell-task ${task.status}" data-task-id="${task.id}" data-group-id="${group.id}" draggable="true">
-            <div class="task-content">
-              <span class="task-color-dot" style="background: ${group.color}"></span>
-              <span class="task-status">${statusConfig.icon}</span>
-              <span class="task-name">${task.name}</span>
-              <span class="info-icon" data-task-id="${task.id}" onclick="openModal('${task.id}')">ℹ</span>
-            </div>
-          </td>`;
+            // Project column - only show name on first task of each project
+            html += `<td class="cell-project${projectCompletedClass}${projectMergeClass}" data-project-id="${project.id}" data-category-id="${category.id}" draggable="${taskIdx === 0 ? 'true' : 'false'}">
+              <span class="project-name">${taskIdx === 0 ? project.name : ''}</span>
+            </td>`;
 
-          html += renderDayCells(task, group, start, totalDays, state.displayMode);
+            // Task - check if completed (today > end date)
+            const taskCompleted = isTaskCompleted(task);
+            const taskCompletedClass = taskCompleted ? ' completed' : '';
+            const statusConfig = STATUS_CONFIG[task.status] || STATUS_CONFIG['in_progress'];
+            html += `<td class="cell-task ${task.status}${taskCompletedClass}" data-task-id="${task.id}" data-project-id="${project.id}" data-category-id="${category.id}" draggable="true">
+              <div class="task-content">
+                <span class="task-color-dot" style="background: ${category.color}"></span>
+                <span class="task-status">${statusConfig.icon}</span>
+                <span class="task-name">${task.name}</span>
+                <span class="info-icon" data-task-id="${task.id}" onclick="openModal('${task.id}')">ℹ</span>
+              </div>
+            </td>`;
 
-          html += '</tr>';
+            html += renderDayCells(task, category, start, totalDays, state.displayMode);
+
+            html += '</tr>';
+            categoryRowIdx++;
+          });
         });
       });
 
@@ -1338,14 +1486,15 @@
       // Chart row
       html += '<tfoot>';
       html += '<tr class="chart-row">';
-      html += `<td class="col-group chart-row-cell"></td>`;
+      html += `<td class="col-category chart-row-cell"></td>`;
+      html += `<td class="col-project chart-row-cell"></td>`;
       html += `<td class="col-task chart-row-cell"><div class="chart-container"><div class="chart-y-axis" id="chart-y-axis-year"></div></div></td>`;
       html += `<td colspan="${numCells}"><canvas id="stats-chart-year" style="width: 100%; height: 60px;"></canvas></td>`;
       html += '</tr>';
 
       // In-progress row
       html += '<tr class="stats-row in-progress">';
-      html += '<td class="col-group"></td><td class="col-task stat-label">🔵 執行中</td>';
+      html += '<td class="col-category"></td><td class="col-project"></td><td class="col-task stat-label">🔵 執行</td>';
       statsData.forEach(s => {
         html += `<td>${s.inProgress || ''}</td>`;
       });
@@ -1353,7 +1502,7 @@
 
       // Background row
       html += '<tr class="stats-row background">';
-      html += '<td class="col-group"></td><td class="col-task stat-label">🔷 背景</td>';
+      html += '<td class="col-category"></td><td class="col-project"></td><td class="col-task stat-label">🔷 管理</td>';
       statsData.forEach(s => {
         html += `<td>${s.background || ''}</td>`;
       });
@@ -1370,18 +1519,20 @@
       const { start, end } = getWeekDateRange();
 
       let html = '<thead><tr>';
-      html += '<th class="col-group"><div class="header-with-add">群組 <button class="add-btn" onclick="addNewGroup()">+</button></div></th>';
-      html += '<th class="col-task"><div class="header-with-add">專案 <button class="add-btn" onclick="addNewTask()">+</button></div></th>';
+      html += '<th class="col-category"><div class="header-with-add">類別 <button class="add-btn" onclick="addNewCategory()">+</button></div></th>';
+      html += '<th class="col-project"><div class="header-with-add">專案 <button class="add-btn" onclick="addNewProject()">+</button></div></th>';
+      html += '<th class="col-task"><div class="header-with-add">工作項目 <button class="add-btn" onclick="addNewTask()">+</button></div></th>';
 
-      for (let i = 0; i < 7; i++) {
+      for (let i = 0; i < 14; i++) {
         const date = new Date(start);
         date.setDate(date.getDate() + i);
         const isToday = isSameDay(date, state.today);
         const weekend = isWeekend(date);
+        const dayName = DAY_NAMES_WEEK[i % 7];
 
         html += `<th class="col-day ${weekend ? 'weekend' : ''} ${isToday ? 'today' : ''}">
           <div class="day-header">
-            <span class="day-name">${DAY_NAMES_WEEK[i]}</span>
+            <span class="day-name">${dayName}</span>
             <span class="day-num">${date.getMonth() + 1}/${date.getDate()}</span>
           </div>
         </th>`;
@@ -1389,45 +1540,78 @@
 
       html += '</tr></thead><tbody>';
 
-      SELAH_DATA.groups.forEach(group => {
-        const activeTasks = group.tasks.filter(task => {
-          if (task.status === 'background') return true;
-          return isTaskActiveInWeek(task, start, end);
+      SELAH_DATA.categories.forEach(category => {
+        // Get sorted projects and filter for active tasks
+        const sortedProjects = getSortedProjects(category);
+        let categoryRowIdx = 0;
+        let hasActiveTasksInCategory = false;
+
+        // First pass: check if category has any active tasks
+        sortedProjects.forEach(project => {
+          const hasActive = project.tasks.some(task => {
+            if (task.status === 'background') return true;
+            return isTaskActiveInWeek(task, start, end);
+          });
+          if (hasActive) hasActiveTasksInCategory = true;
         });
 
-        if (activeTasks.length === 0) return;
+        if (!hasActiveTasksInCategory) return;
 
-        activeTasks.forEach((task, idx) => {
-          html += '<tr>';
+        sortedProjects.forEach((project, projectIdx) => {
+          // Filter active tasks for this project
+          const activeTasks = sortTasks(project.tasks).filter(task => {
+            if (task.status === 'background') return true;
+            return isTaskActiveInWeek(task, start, end);
+          });
 
-          if (idx === 0) {
-            html += `<td class="cell-group" rowspan="${activeTasks.length}" draggable="true" data-group-id="${group.id}">
-              <span class="group-color-bar" style="background: ${group.color}"></span>
-              <span class="group-name">${group.name}</span>
+          if (activeTasks.length === 0) return;
+
+          const projectCompleted = isProjectCompleted(project);
+
+          activeTasks.forEach((task, taskIdx) => {
+            const categoryMergeClass = categoryRowIdx === 0 ? '' : ' merge-continue';
+            const projectMergeClass = taskIdx === 0 ? '' : ' merge-continue';
+            const projectCompletedClass = projectCompleted ? ' completed' : '';
+
+            html += '<tr>';
+
+            // Category cell - repeated in each row for proper sticky behavior
+            html += `<td class="cell-category${categoryMergeClass}" draggable="true" data-category-id="${category.id}">
+              <span class="category-color-bar" style="background: ${category.color}"></span>
+              <span class="category-name">${categoryRowIdx === 0 ? category.name : ''}</span>
             </td>`;
-          }
 
-          const statusConfig = STATUS_CONFIG[task.status] || STATUS_CONFIG['in_progress'];
-          html += `<td class="cell-task ${task.status}" data-task-id="${task.id}" data-group-id="${group.id}" draggable="true">
-            <div class="task-content">
-              <span class="task-color-dot" style="background: ${group.color}"></span>
-              <span class="task-status">${statusConfig.icon}</span>
-              <span class="task-name">${task.name}</span>
-              <span class="info-icon" data-task-id="${task.id}" onclick="openModal('${task.id}')">ℹ</span>
-            </div>
-          </td>`;
+            // Project column - only show name on first task of each project
+            html += `<td class="cell-project${projectCompletedClass}${projectMergeClass}" data-project-id="${project.id}" data-category-id="${category.id}" draggable="${taskIdx === 0 ? 'true' : 'false'}">
+              <span class="project-name">${taskIdx === 0 ? project.name : ''}</span>
+            </td>`;
 
-          html += renderWeekDayCells(task, group, start);
+            // Task - check if completed (today > end date)
+            const taskCompleted = isTaskCompleted(task);
+            const taskCompletedClass = taskCompleted ? ' completed' : '';
+            const statusConfig = STATUS_CONFIG[task.status] || STATUS_CONFIG['in_progress'];
+            html += `<td class="cell-task ${task.status}${taskCompletedClass}" data-task-id="${task.id}" data-project-id="${project.id}" data-category-id="${category.id}" draggable="true">
+              <div class="task-content">
+                <span class="task-color-dot" style="background: ${category.color}"></span>
+                <span class="task-status">${statusConfig.icon}</span>
+                <span class="task-name">${task.name}</span>
+                <span class="info-icon" data-task-id="${task.id}" onclick="openModal('${task.id}')">ℹ</span>
+              </div>
+            </td>`;
 
-          html += '</tr>';
+            html += renderWeekDayCells(task, category, start);
+
+            html += '</tr>';
+            categoryRowIdx++;
+          });
         });
       });
 
       html += '</tbody>';
 
-      // Collect stats for week view
+      // Collect stats for biweek view (14 days)
       const statsData = [];
-      for (let i = 0; i < 7; i++) {
+      for (let i = 0; i < 14; i++) {
         const dayStart = new Date(start);
         dayStart.setDate(dayStart.getDate() + i);
         const dayEnd = new Date(dayStart);
@@ -1437,14 +1621,15 @@
       // Chart row
       html += '<tfoot>';
       html += '<tr class="chart-row">';
-      html += `<td class="col-group chart-row-cell"></td>`;
+      html += `<td class="col-category chart-row-cell"></td>`;
+      html += `<td class="col-project chart-row-cell"></td>`;
       html += `<td class="col-task chart-row-cell"><div class="chart-container"><div class="chart-y-axis" id="chart-y-axis-week"></div></div></td>`;
-      html += `<td colspan="7"><canvas id="stats-chart-week" style="width: 100%; height: 60px;"></canvas></td>`;
+      html += `<td colspan="14"><canvas id="stats-chart-week" style="width: 100%; height: 60px;"></canvas></td>`;
       html += '</tr>';
 
       // In-progress row
       html += '<tr class="stats-row in-progress">';
-      html += '<td class="col-group"></td><td class="col-task stat-label">🔵 執行中</td>';
+      html += '<td class="col-category"></td><td class="col-project"></td><td class="col-task stat-label">🔵 執行</td>';
       statsData.forEach(s => {
         html += `<td>${s.inProgress || ''}</td>`;
       });
@@ -1452,7 +1637,7 @@
 
       // Background row
       html += '<tr class="stats-row background">';
-      html += '<td class="col-group"></td><td class="col-task stat-label">🔷 背景</td>';
+      html += '<td class="col-category"></td><td class="col-project"></td><td class="col-task stat-label">🔷 管理</td>';
       statsData.forEach(s => {
         html += `<td>${s.background || ''}</td>`;
       });
@@ -1465,7 +1650,7 @@
       drawChart('stats-chart-week', 'chart-y-axis-week', statsData);
     }
 
-    function renderDayCells(task, group, rangeStart, totalDays, mode) {
+    function renderDayCells(task, category, rangeStart, totalDays, mode) {
       const cellWidth = mode === 'week' ? 16 : (mode === 'biweek' ? 8 : (mode === 'month' ? 4 : 21));
       const numCells = mode === 'week' ? Math.ceil(totalDays / 7) : (mode === 'biweek' ? Math.ceil(totalDays / 14) : (mode === 'month' ? 12 : totalDays));
 
@@ -1510,7 +1695,7 @@
             const barWidth = (endCell - startCell + 1) * cellWidth - 4;
             const isBackground = task.status === 'background';
             cellContent += `<div class="task-bar ${task.status} ${isBackground ? 'background' : ''}"
-                 style="left: 2px; width: ${barWidth}px; background-color: ${group.color};"
+                 style="left: 2px; width: ${barWidth}px; background-color: ${category.color};"
                  data-task-id="${task.id}">
                  <span class="drag-handle left" data-handle="start"></span>
                  <span class="drag-handle right" data-handle="end"></span>
@@ -1524,14 +1709,14 @@
       return html;
     }
 
-    function renderWeekDayCells(task, group, weekStart) {
+    function renderWeekDayCells(task, category, weekStart) {
       const cellWidth = 80;
       let html = '';
 
       const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekEnd.getDate() + 6);
+      weekEnd.setDate(weekEnd.getDate() + 13); // Two weeks (14 days)
 
-      for (let i = 0; i < 7; i++) {
+      for (let i = 0; i < 14; i++) {
         const date = new Date(weekStart);
         date.setDate(date.getDate() + i);
         const isToday = isSameDay(date, state.today);
@@ -1554,7 +1739,7 @@
               const barWidth = (endDay - startDay + 1) * cellWidth - 4;
               const isBackground = task.status === 'background';
               cellContent += `<div class="task-bar ${task.status} ${isBackground ? 'background' : ''}"
-                   style="left: 2px; width: ${barWidth}px; background-color: ${group.color};"
+                   style="left: 2px; width: ${barWidth}px; background-color: ${category.color};"
                    data-task-id="${task.id}">
                    <span class="drag-handle left" data-handle="start"></span>
                    ${task.name}
@@ -1571,9 +1756,10 @@
     }
 
     let dragState = {
-      type: null, // 'group' or 'task'
+      type: null, // 'category', 'project', or 'task'
       sourceId: null,
-      sourceGroupId: null
+      sourceCategoryId: null,
+      sourceProjectId: null
     };
 
     let resizeState = {
@@ -1596,13 +1782,25 @@
         el.addEventListener('mouseleave', hideTooltip);
       });
 
-      // Group drag events
-      document.querySelectorAll('.cell-group[draggable="true"]').forEach(el => {
+      // Category drag events
+      document.querySelectorAll('.cell-category[draggable="true"]').forEach(el => {
         el.addEventListener('dragstart', handleGroupDragStart);
         el.addEventListener('dragend', handleGroupDragEnd);
         el.addEventListener('dragover', handleGroupDragOver);
         el.addEventListener('drop', handleGroupDrop);
         el.addEventListener('dragleave', handleGroupDragLeave);
+      });
+
+      // Project drag events
+      document.querySelectorAll('.cell-project[draggable="true"]').forEach(el => {
+        el.addEventListener('dragstart', handleProjectDragStart);
+        el.addEventListener('dragend', handleProjectDragEnd);
+      });
+
+      // Project drop targets (category cells)
+      document.querySelectorAll('.cell-category').forEach(el => {
+        el.addEventListener('dragover', handleProjectDragOver);
+        el.addEventListener('drop', handleProjectDrop);
       });
 
       // Task drag events
@@ -1611,8 +1809,13 @@
         el.addEventListener('dragend', handleTaskDragEnd);
       });
 
-      // Task drop targets (group cells)
-      document.querySelectorAll('.cell-group').forEach(el => {
+      // Task drop targets (project cells and category cells)
+      document.querySelectorAll('.cell-project').forEach(el => {
+        el.addEventListener('dragover', handleTaskDragOver);
+        el.addEventListener('drop', handleTaskDrop);
+        el.addEventListener('dragleave', handleTaskDragLeave);
+      });
+      document.querySelectorAll('.cell-category').forEach(el => {
         el.addEventListener('dragover', handleTaskDragOver);
         el.addEventListener('drop', handleTaskDrop);
         el.addEventListener('dragleave', handleTaskDragLeave);
@@ -1635,9 +1838,14 @@
         el.addEventListener('click', handleDayCellClick);
       });
 
-      // Double-click to edit group name
-      document.querySelectorAll('.cell-group').forEach(el => {
-        el.addEventListener('dblclick', handleGroupDblClick);
+      // Double-click to edit category name
+      document.querySelectorAll('.cell-category').forEach(el => {
+        el.addEventListener('dblclick', handleCategoryDblClick);
+      });
+
+      // Double-click to edit project name
+      document.querySelectorAll('.cell-project').forEach(el => {
+        el.addEventListener('dblclick', handleProjectDblClick);
       });
 
       // Double-click to edit task name
@@ -1647,15 +1855,31 @@
     }
 
     // Double-click handlers
-    function handleGroupDblClick(e) {
+    function handleCategoryDblClick(e) {
       if (e.target.classList.contains('inline-input')) return;
-      const groupId = e.currentTarget.dataset.groupId;
-      const groupNameEl = e.currentTarget.querySelector('.group-name');
-      if (groupNameEl) {
-        makeEditable(groupNameEl, (newName) => {
-          const group = SELAH_DATA.groups.find(g => g.id === groupId);
-          if (group && newName) {
-            group.name = newName;
+      const categoryId = e.currentTarget.dataset.categoryId;
+      const categoryNameEl = e.currentTarget.querySelector('.category-name');
+      if (categoryNameEl) {
+        makeEditable(categoryNameEl, (newName) => {
+          const category = SELAH_DATA.categories.find(c => c.id === categoryId);
+          if (category && newName) {
+            category.name = newName;
+            render();
+            saveData();
+          }
+        });
+      }
+    }
+
+    function handleProjectDblClick(e) {
+      if (e.target.classList.contains('inline-input')) return;
+      const projectId = e.currentTarget.dataset.projectId;
+      const projectNameEl = e.currentTarget.querySelector('.project-name');
+      if (projectNameEl) {
+        makeEditable(projectNameEl, (newName) => {
+          const project = findProjectById(projectId);
+          if (project && newName) {
+            project.name = newName;
             render();
             saveData();
           }
@@ -1679,22 +1903,22 @@
       }
     }
 
-    // Group drag handlers
+    // Category drag handlers
     function handleGroupDragStart(e) {
-      dragState.type = 'group';
-      dragState.sourceId = e.currentTarget.dataset.groupId;
+      dragState.type = 'category';
+      dragState.sourceId = e.currentTarget.dataset.categoryId;
       e.currentTarget.classList.add('dragging');
       e.dataTransfer.effectAllowed = 'move';
     }
 
     function handleGroupDragEnd(e) {
       e.currentTarget.classList.remove('dragging');
-      document.querySelectorAll('.cell-group').forEach(el => el.classList.remove('drag-over'));
-      dragState = { type: null, sourceId: null, sourceGroupId: null };
+      document.querySelectorAll('.cell-category').forEach(el => el.classList.remove('drag-over'));
+      dragState = { type: null, sourceId: null, sourceCategoryId: null, sourceProjectId: null };
     }
 
     function handleGroupDragOver(e) {
-      if (dragState.type !== 'group') return;
+      if (dragState.type !== 'category') return;
       e.preventDefault();
       e.currentTarget.classList.add('drag-over');
     }
@@ -1706,19 +1930,68 @@
     function handleGroupDrop(e) {
       e.preventDefault();
       e.currentTarget.classList.remove('drag-over');
-      if (dragState.type !== 'group') return;
+      if (dragState.type !== 'category') return;
 
-      const targetGroupId = e.currentTarget.dataset.groupId;
-      if (targetGroupId === dragState.sourceId) return;
+      const targetCategoryId = e.currentTarget.dataset.categoryId;
+      if (targetCategoryId === dragState.sourceId) return;
 
-      const sourceIdx = SELAH_DATA.groups.findIndex(g => g.id === dragState.sourceId);
-      const targetIdx = SELAH_DATA.groups.findIndex(g => g.id === targetGroupId);
+      const sourceIdx = SELAH_DATA.categories.findIndex(c => c.id === dragState.sourceId);
+      const targetIdx = SELAH_DATA.categories.findIndex(c => c.id === targetCategoryId);
 
       if (sourceIdx !== -1 && targetIdx !== -1) {
-        const [removed] = SELAH_DATA.groups.splice(sourceIdx, 1);
-        SELAH_DATA.groups.splice(targetIdx, 0, removed);
+        const [removed] = SELAH_DATA.categories.splice(sourceIdx, 1);
+        SELAH_DATA.categories.splice(targetIdx, 0, removed);
         render();
         saveData();
+      }
+    }
+
+    // Project drag handlers
+    function handleProjectDragStart(e) {
+      e.stopPropagation();
+      dragState.type = 'project';
+      dragState.sourceId = e.currentTarget.dataset.projectId;
+      dragState.sourceCategoryId = e.currentTarget.dataset.categoryId;
+      e.currentTarget.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', dragState.sourceId);
+    }
+
+    function handleProjectDragEnd(e) {
+      e.currentTarget.classList.remove('dragging');
+      document.querySelectorAll('.cell-category').forEach(el => el.classList.remove('drag-over'));
+      document.querySelectorAll('.cell-project').forEach(el => el.classList.remove('drag-over'));
+      dragState = { type: null, sourceId: null, sourceCategoryId: null, sourceProjectId: null };
+    }
+
+    function handleProjectDragOver(e) {
+      if (dragState.type !== 'project') return;
+      e.preventDefault();
+      e.currentTarget.classList.add('drag-over');
+    }
+
+    function handleProjectDrop(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      document.querySelectorAll('.cell-category').forEach(el => el.classList.remove('drag-over'));
+
+      if (dragState.type !== 'project') return;
+
+      const targetCategoryId = e.currentTarget.dataset.categoryId;
+      if (!targetCategoryId || targetCategoryId === dragState.sourceCategoryId) return;
+
+      const sourceCategory = SELAH_DATA.categories.find(c => c.id === dragState.sourceCategoryId);
+      const targetCategory = SELAH_DATA.categories.find(c => c.id === targetCategoryId);
+
+      if (sourceCategory && targetCategory) {
+        // Find and move the project
+        const projectIdx = sourceCategory.projects.findIndex(p => p.id === dragState.sourceId);
+        if (projectIdx !== -1) {
+          const [movedProject] = sourceCategory.projects.splice(projectIdx, 1);
+          targetCategory.projects.push(movedProject);
+          render();
+          saveData();
+        }
       }
     }
 
@@ -1727,7 +2000,8 @@
       e.stopPropagation();
       dragState.type = 'task';
       dragState.sourceId = e.currentTarget.dataset.taskId;
-      dragState.sourceGroupId = e.currentTarget.dataset.groupId;
+      dragState.sourceCategoryId = e.currentTarget.dataset.categoryId;
+      dragState.sourceProjectId = e.currentTarget.dataset.projectId;
       e.currentTarget.classList.add('dragging');
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', dragState.sourceId);
@@ -1735,17 +2009,17 @@
 
     function handleTaskDragEnd(e) {
       e.currentTarget.classList.remove('dragging');
-      document.querySelectorAll('.cell-group').forEach(el => el.classList.remove('drag-over'));
+      document.querySelectorAll('.cell-category').forEach(el => el.classList.remove('drag-over'));
+      document.querySelectorAll('.cell-project').forEach(el => el.classList.remove('drag-over'));
       document.querySelectorAll('.cell-task').forEach(el => el.classList.remove('drag-over'));
-      dragState = { type: null, sourceId: null, sourceGroupId: null };
+      dragState = { type: null, sourceId: null, sourceCategoryId: null, sourceProjectId: null };
     }
 
     function handleTaskDragOver(e) {
       if (dragState.type !== 'task') return;
       e.preventDefault();
       e.stopPropagation();
-      const groupCell = e.currentTarget.closest('.cell-group') || e.currentTarget;
-      groupCell.classList.add('drag-over');
+      e.currentTarget.classList.add('drag-over');
     }
 
     function handleTaskDragLeave(e) {
@@ -1755,35 +2029,73 @@
     function handleTaskDrop(e) {
       e.preventDefault();
       e.stopPropagation();
-      document.querySelectorAll('.cell-group').forEach(el => el.classList.remove('drag-over'));
+      document.querySelectorAll('.cell-category').forEach(el => el.classList.remove('drag-over'));
+      document.querySelectorAll('.cell-project').forEach(el => el.classList.remove('drag-over'));
 
       if (dragState.type !== 'task') return;
 
-      // Find the target group ID from the cell
-      const targetCell = e.currentTarget.closest('.cell-group') || e.currentTarget;
-      const targetGroupId = targetCell.dataset.groupId;
+      const task = findTaskById(dragState.sourceId);
+      if (!task) return;
 
-      if (!targetGroupId || targetGroupId === dragState.sourceGroupId) return;
+      // Check if dropped on a project cell
+      if (e.currentTarget.classList.contains('cell-project')) {
+        const targetProjectId = e.currentTarget.dataset.projectId;
+        const targetCategoryId = e.currentTarget.dataset.categoryId;
 
-      // Find and move task
-      const sourceGroup = SELAH_DATA.groups.find(g => g.id === dragState.sourceGroupId);
-      const targetGroup = SELAH_DATA.groups.find(g => g.id === targetGroupId);
+        // Only proceed if target is different
+        if (targetProjectId && targetProjectId !== dragState.sourceProjectId) {
+          // Move task to target project
+          const sourceCategory = SELAH_DATA.categories.find(c => c.id === dragState.sourceCategoryId);
+          const targetCategory = SELAH_DATA.categories.find(c => c.id === targetCategoryId);
 
-      if (sourceGroup && targetGroup) {
-        const taskIdx = sourceGroup.tasks.findIndex(t => t.id === dragState.sourceId);
-        if (taskIdx !== -1) {
-          const [task] = sourceGroup.tasks.splice(taskIdx, 1);
-          targetGroup.tasks.push(task);
-          // Ensure source group still has at least one task
-          ensureGroupHasTask(sourceGroup);
-          // Sort by start date
-          targetGroup.tasks.sort((a, b) => {
-            if (!a.start) return 1;
-            if (!b.start) return -1;
-            return new Date(a.start) - new Date(b.start);
-          });
-          render();
-          saveData();
+          if (sourceCategory && targetCategory) {
+            const sourceProject = sourceCategory.projects.find(p => p.id === dragState.sourceProjectId);
+            const targetProject = targetCategory.projects.find(p => p.id === targetProjectId);
+
+            if (sourceProject && targetProject) {
+              const taskIdx = sourceProject.tasks.findIndex(t => t.id === dragState.sourceId);
+              if (taskIdx !== -1) {
+                const [movedTask] = sourceProject.tasks.splice(taskIdx, 1);
+                targetProject.tasks.push(movedTask);
+                ensureProjectHasTask(sourceProject);
+                render();
+                saveData();
+              }
+            }
+          }
+        }
+        return;
+      }
+
+      // Check if dropped on a category cell - create new project for the task
+      if (e.currentTarget.classList.contains('cell-category')) {
+        const targetCategoryId = e.currentTarget.dataset.categoryId;
+        if (!targetCategoryId) return;
+
+        const sourceCategory = SELAH_DATA.categories.find(c => c.id === dragState.sourceCategoryId);
+        const targetCategory = SELAH_DATA.categories.find(c => c.id === targetCategoryId);
+
+        if (sourceCategory && targetCategory) {
+          const sourceProject = sourceCategory.projects.find(p => p.id === dragState.sourceProjectId);
+
+          if (sourceProject) {
+            const taskIdx = sourceProject.tasks.findIndex(t => t.id === dragState.sourceId);
+            if (taskIdx !== -1) {
+              const [movedTask] = sourceProject.tasks.splice(taskIdx, 1);
+
+              // Create a new project for the task in the target category
+              const newProjectId = 'proj-' + Date.now();
+              targetCategory.projects.push({
+                id: newProjectId,
+                name: movedTask.name,
+                tasks: [movedTask]
+              });
+
+              ensureProjectHasTask(sourceProject);
+              render();
+              saveData();
+            }
+          }
         }
       }
     }
@@ -1814,7 +2126,7 @@
       // Only handle not_started tasks or tasks without dates
       if (task && (task.status === 'not_started' || !task.start || !task.end)) {
         const cellIndex = Array.from(row.children).indexOf(e.currentTarget);
-        const dayIndex = cellIndex - 2; // Subtract group and task columns
+        const dayIndex = cellIndex - 3; // Subtract category, project, and task columns
 
         if (dayIndex >= 0) {
           let clickedDate;
@@ -1981,19 +2293,32 @@
     }
 
     function findTaskById(taskId) {
-      for (const group of SELAH_DATA.groups) {
-        const task = group.tasks.find(t => t.id === taskId);
-        if (task) return task;
+      for (const category of SELAH_DATA.categories) {
+        for (const project of category.projects) {
+          const task = project.tasks.find(t => t.id === taskId);
+          if (task) return task;
+        }
       }
       return null;
     }
 
-    // Ensure group always has at least one task
-    function ensureGroupHasTask(group) {
-      if (group.tasks.length === 0) {
-        group.tasks.push({
+    // Find task with its context (category, project)
+    function findTaskWithContext(taskId) {
+      for (const category of SELAH_DATA.categories) {
+        for (const project of category.projects) {
+          const task = project.tasks.find(t => t.id === taskId);
+          if (task) return { task, project, category };
+        }
+      }
+      return null;
+    }
+
+    // Ensure project always has at least one task
+    function ensureProjectHasTask(project) {
+      if (project.tasks.length === 0) {
+        project.tasks.push({
           id: 'task-' + Date.now(),
-          name: '新專案',
+          name: '新工作項目',
           start: null,
           end: null,
           status: 'not_started',
@@ -2002,39 +2327,44 @@
       }
     }
 
-    // Add new group (at bottom, with default task)
-    function addNewGroup() {
-      const groupId = 'group-' + Date.now();
+    // Add new category (at bottom, with default project and task)
+    function addNewCategory() {
+      const categoryId = 'category-' + Date.now();
+      const projectId = 'proj-' + Date.now();
       const taskId = 'task-' + Date.now();
       const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#ef4444'];
-      const color = colors[SELAH_DATA.groups.length % colors.length];
+      const color = colors[SELAH_DATA.categories.length % colors.length];
       const today = state.today.toISOString().split('T')[0];
 
-      SELAH_DATA.groups.push({
-        id: groupId,
-        name: '新群組',
+      SELAH_DATA.categories.push({
+        id: categoryId,
+        name: '新類別',
         color: color,
-        tasks: [{
-          id: taskId,
+        projects: [{
+          id: projectId,
           name: '新專案',
-          start: today,
-          end: today,
-          status: 'in_progress',
-          note: ''
+          tasks: [{
+            id: taskId,
+            name: '新工作項目',
+            start: today,
+            end: today,
+            status: 'in_progress',
+            note: ''
+          }]
         }]
       });
 
       render();
       saveData();
 
-      // Make the new group name editable
+      // Make the new category name editable
       setTimeout(() => {
-        const groupCell = document.querySelector(`[data-group-id="${groupId}"] .group-name`);
-        if (groupCell) {
-          makeEditable(groupCell, (newName) => {
-            const group = SELAH_DATA.groups.find(g => g.id === groupId);
-            if (group) {
-              group.name = newName || '新群組';
+        const categoryCell = document.querySelector(`[data-category-id="${categoryId}"] .category-name`);
+        if (categoryCell) {
+          makeEditable(categoryCell, (newName) => {
+            const category = SELAH_DATA.categories.find(c => c.id === categoryId);
+            if (category) {
+              category.name = newName || '新類別';
               render();
               saveData();
             }
@@ -2043,21 +2373,22 @@
       }, 100);
     }
 
-    // Add new task (to last group)
+    // Add new task (to last project of last category)
     function addNewTask() {
-      if (SELAH_DATA.groups.length === 0) {
-        alert('請先新增群組');
+      if (SELAH_DATA.categories.length === 0) {
+        alert('請先新增類別');
         return;
       }
 
       const taskId = 'task-' + Date.now();
       const today = state.today.toISOString().split('T')[0];
 
-      // Add to last group
-      const lastGroup = SELAH_DATA.groups[SELAH_DATA.groups.length - 1];
-      lastGroup.tasks.push({
+      // Add to last project of last category
+      const lastCategory = SELAH_DATA.categories[SELAH_DATA.categories.length - 1];
+      const lastProject = lastCategory.projects[lastCategory.projects.length - 1];
+      lastProject.tasks.push({
         id: taskId,
-        name: '新專案',
+        name: '新工作項目',
         start: today,
         end: today,
         status: 'in_progress',
@@ -2074,13 +2405,139 @@
           makeEditable(taskCell, (newName) => {
             const task = findTaskById(taskId);
             if (task) {
-              task.name = newName || '新專案';
+              task.name = newName || '新工作項目';
               render();
               saveData();
             }
           });
         }
       }, 100);
+    }
+
+    // Add new project (to last category)
+    function addNewProject() {
+      if (SELAH_DATA.categories.length === 0) {
+        alert('請先新增類別');
+        return;
+      }
+
+      const projectId = 'proj-' + Date.now();
+      const taskId = 'task-' + Date.now();
+      const today = state.today.toISOString().split('T')[0];
+
+      // Add to last category
+      const lastCategory = SELAH_DATA.categories[SELAH_DATA.categories.length - 1];
+      lastCategory.projects.push({
+        id: projectId,
+        name: '新專案',
+        tasks: [{
+          id: taskId,
+          name: '新工作項目',
+          start: today,
+          end: today,
+          status: 'in_progress',
+          note: ''
+        }]
+      });
+
+      render();
+      saveData();
+
+      // Make the new project name editable
+      setTimeout(() => {
+        const projectCell = document.querySelector(`[data-project-id="${projectId}"] .project-name`);
+        if (projectCell) {
+          makeEditable(projectCell, (newName) => {
+            const project = findProjectById(projectId);
+            if (project) {
+              project.name = newName || '新專案';
+              render();
+              saveData();
+            }
+          });
+        }
+      }, 100);
+    }
+
+    // Find project by ID
+    function findProjectById(projectId) {
+      for (const category of SELAH_DATA.categories) {
+        const project = category.projects.find(p => p.id === projectId);
+        if (project) return project;
+      }
+      return null;
+    }
+
+    // Check if a task is completed (today > end date and status is in_progress or background)
+    function isTaskCompleted(task) {
+      if (!task.end) return false;
+      if (task.status === 'not_started') return false;
+      const endDate = parseDate(task.end);
+      return state.today > endDate;
+    }
+
+    // Check if all tasks in a project are completed
+    function isProjectCompleted(project) {
+      if (!project || !project.tasks || project.tasks.length === 0) return false;
+
+      const projectTasks = project.tasks;
+      if (projectTasks.length === 0) return false;
+
+      // All tasks with this project must be completed (today > end date)
+      return projectTasks.every(t => isTaskCompleted(t));
+    }
+
+    // Get earliest start date for a project
+    function getProjectEarliestStart(project) {
+      if (!project || !project.tasks) return null;
+
+      const activeTasks = project.tasks.filter(t => t.status !== 'not_started' && t.start);
+      if (activeTasks.length === 0) return null;
+
+      return activeTasks.reduce((earliest, t) => {
+        const start = parseDate(t.start);
+        return earliest === null || start < earliest ? start : earliest;
+      }, null);
+    }
+
+    // Sort tasks: by start date, not_started at bottom
+    function sortTasks(tasks) {
+      return [...tasks].sort((a, b) => {
+        // not_started tasks go to bottom
+        if (a.status === 'not_started' && b.status !== 'not_started') return 1;
+        if (a.status !== 'not_started' && b.status === 'not_started') return -1;
+        if (a.status === 'not_started' && b.status === 'not_started') return 0;
+
+        // Sort by start date
+        if (!a.start && !b.start) return 0;
+        if (!a.start) return 1;
+        if (!b.start) return -1;
+        return new Date(a.start) - new Date(b.start);
+      });
+    }
+
+    // Sort projects by earliest task start date, all-not_started at bottom
+    function getSortedProjects(category) {
+      if (!category || !category.projects) return [];
+
+      return [...category.projects].sort((a, b) => {
+        const allNotStartedA = a.tasks.every(t => t.status === 'not_started');
+        const allNotStartedB = b.tasks.every(t => t.status === 'not_started');
+
+        // All not_started projects go to bottom
+        if (allNotStartedA && !allNotStartedB) return 1;
+        if (!allNotStartedA && allNotStartedB) return -1;
+        if (allNotStartedA && allNotStartedB) return 0;
+
+        // Get earliest start date for each project
+        const earliestA = getProjectEarliestStart(a);
+        const earliestB = getProjectEarliestStart(b);
+
+        if (!earliestA && !earliestB) return 0;
+        if (!earliestA) return 1;
+        if (!earliestB) return -1;
+        return earliestA - earliestB;
+      });
     }
 
     function makeEditable(element, onSave) {
@@ -2131,7 +2588,7 @@
         const response = await fetch('data.json');
         const jsonData = await response.json();
         SELAH_DATA.meta = jsonData.meta;
-        SELAH_DATA.groups = jsonData.groups;
+        SELAH_DATA.categories = jsonData.categories;
         console.log('Base data loaded from data.json');
       } catch (e) {
         console.error('Failed to load data.json:', e);
@@ -2142,7 +2599,7 @@
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          SELAH_DATA.groups = parsed.groups;
+          SELAH_DATA.categories = parsed.categories;
           SELAH_DATA.meta = parsed.meta;
           console.log('Data overridden from localStorage');
         } catch (e) {
@@ -2161,7 +2618,7 @@
         const response = await fetch('data.json?' + Date.now()); // bust cache
         const jsonData = await response.json();
         SELAH_DATA.meta = jsonData.meta;
-        SELAH_DATA.groups = jsonData.groups;
+        SELAH_DATA.categories = jsonData.categories;
 
         const btn = document.getElementById('sync-btn');
         btn.textContent = '✓ Synced!';
@@ -2179,20 +2636,38 @@
     function exportData() {
       const exportObj = {
         meta: SELAH_DATA.meta,
-        groups: SELAH_DATA.groups,
+        categories: SELAH_DATA.categories,
         exportedAt: new Date().toISOString()
       };
       const jsonStr = JSON.stringify(exportObj, null, 2);
+      const btn = document.getElementById('export-btn');
 
-      navigator.clipboard.writeText(jsonStr).then(() => {
-        const btn = document.getElementById('export-btn');
+      // Try clipboard API first
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(jsonStr).then(() => {
+          btn.textContent = '✓ Copied!';
+          setTimeout(() => btn.textContent = '📋 Copy', 2000);
+        }).catch(() => fallbackCopy(jsonStr, btn));
+      } else {
+        fallbackCopy(jsonStr, btn);
+      }
+    }
+
+    function fallbackCopy(text, btn) {
+      // Fallback using textarea
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.left = '-9999px';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
         btn.textContent = '✓ Copied!';
-        setTimeout(() => {
-          btn.textContent = '📋 Copy';
-        }, 2000);
-      }).catch(() => {
-        // Fallback: download as JSON file
-        const blob = new Blob([jsonStr], { type: 'application/json' });
+        setTimeout(() => btn.textContent = '📋 Copy', 2000);
+      } catch (e) {
+        // Final fallback: download file
+        const blob = new Blob([text], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -2201,7 +2676,10 @@
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-      });
+        btn.textContent = '⬇ Downloaded';
+        setTimeout(() => btn.textContent = '📋 Copy', 2000);
+      }
+      document.body.removeChild(textarea);
     }
 
     // Modal functions
@@ -2212,6 +2690,7 @@
       const task = findTaskById(taskId);
       if (!task) return;
 
+      document.getElementById('modal-project').value = task.project || '';
       document.getElementById('modal-name').value = task.name || '';
       document.getElementById('modal-start').value = task.start || '';
       document.getElementById('modal-end').value = task.end || '';
@@ -2231,6 +2710,7 @@
       const task = findTaskById(currentEditTaskId);
       if (!task) return;
 
+      task.project = document.getElementById('modal-project').value || '';
       task.name = document.getElementById('modal-name').value;
       task.start = document.getElementById('modal-start').value || null;
       task.end = document.getElementById('modal-end').value || null;
@@ -2261,35 +2741,51 @@
         e.preventDefault();
         deleteZone.classList.remove('drag-over');
 
-        if (dragState.type === 'group') {
-          // Delete group
-          const groupIdx = SELAH_DATA.groups.findIndex(g => g.id === dragState.sourceId);
-          if (groupIdx !== -1) {
-            if (confirm(`確定要刪除群組「${SELAH_DATA.groups[groupIdx].name}」及其所有專案嗎？`)) {
-              SELAH_DATA.groups.splice(groupIdx, 1);
+        if (dragState.type === 'category') {
+          // Delete category
+          const categoryIdx = SELAH_DATA.categories.findIndex(c => c.id === dragState.sourceId);
+          if (categoryIdx !== -1) {
+            if (confirm(`確定要刪除類別「${SELAH_DATA.categories[categoryIdx].name}」及其所有工作項目嗎？`)) {
+              SELAH_DATA.categories.splice(categoryIdx, 1);
               render();
               saveData();
             }
           }
-        } else if (dragState.type === 'task') {
-          // Delete task
-          const sourceGroup = SELAH_DATA.groups.find(g => g.id === dragState.sourceGroupId);
-          if (sourceGroup) {
-            const taskIdx = sourceGroup.tasks.findIndex(t => t.id === dragState.sourceId);
-            if (taskIdx !== -1) {
-              const taskName = sourceGroup.tasks[taskIdx].name;
-              if (confirm(`確定要刪除專案「${taskName}」嗎？`)) {
-                sourceGroup.tasks.splice(taskIdx, 1);
-                // Ensure group still has at least one task
-                ensureGroupHasTask(sourceGroup);
+        } else if (dragState.type === 'project') {
+          // Delete project
+          const sourceCategory = SELAH_DATA.categories.find(c => c.id === dragState.sourceCategoryId);
+          if (sourceCategory) {
+            const projectIdx = sourceCategory.projects.findIndex(p => p.id === dragState.sourceId);
+            if (projectIdx !== -1) {
+              const projectName = sourceCategory.projects[projectIdx].name;
+              if (confirm(`確定要刪除專案「${projectName}」及其所有工作項目嗎？`)) {
+                sourceCategory.projects.splice(projectIdx, 1);
                 render();
                 saveData();
               }
             }
           }
+        } else if (dragState.type === 'task') {
+          // Delete task
+          const sourceCategory = SELAH_DATA.categories.find(c => c.id === dragState.sourceCategoryId);
+          if (sourceCategory) {
+            const sourceProject = sourceCategory.projects.find(p => p.id === dragState.sourceProjectId);
+            if (sourceProject) {
+              const taskIdx = sourceProject.tasks.findIndex(t => t.id === dragState.sourceId);
+              if (taskIdx !== -1) {
+                const taskName = sourceProject.tasks[taskIdx].name;
+                if (confirm(`確定要刪除工作項目「${taskName}」嗎？`)) {
+                  sourceProject.tasks.splice(taskIdx, 1);
+                  ensureProjectHasTask(sourceProject);
+                  render();
+                  saveData();
+                }
+              }
+            }
+          }
         }
 
-        dragState = { type: null, sourceId: null, sourceGroupId: null };
+        dragState = { type: null, sourceId: null, sourceCategoryId: null, sourceProjectId: null };
       });
     }
 
@@ -2297,8 +2793,9 @@
       const tooltip = document.getElementById('tooltip');
       const statusConfig = STATUS_CONFIG[task.status] || { icon: '⚪', label: '未設定' };
       tooltip.innerHTML = `
-        <div class="tooltip-title" style="color: ${task.groupColor}">${task.name}</div>
-        <div class="tooltip-row"><span>分群：</span><span>${task.groupName}</span></div>
+        <div class="tooltip-title" style="color: ${task.categoryColor}">${task.name}</div>
+        <div class="tooltip-row"><span>類別：</span><span>${task.categoryName}</span></div>
+        ${task.projectName ? `<div class="tooltip-row"><span>專案：</span><span>${task.projectName}</span></div>` : ''}
         <div class="tooltip-row"><span>狀態：</span><span>${statusConfig.icon} ${statusConfig.label}</span></div>
         <div class="tooltip-row"><span>開始：</span><span>${formatDate(task.start)}</span></div>
         <div class="tooltip-row"><span>結束：</span><span>${formatDate(task.end)}</span></div>
