@@ -46,6 +46,20 @@
               "note": "周一報告後 Close"
             }
           ]
+        },
+        {
+          "id": "proj-1768744528170",
+          "name": "投資體檢",
+          "tasks": [
+            {
+              "id": "task-1768744528170",
+              "name": "單項任務",
+              "start": "2026-01-20",
+              "end": "2026-01-20",
+              "status": "in_progress",
+              "note": ""
+            }
+          ]
         }
       ]
     },
@@ -177,6 +191,14 @@
               "name": "AOI Align",
               "start": "2026-01-22",
               "end": "2026-01-23",
+              "status": "in_progress",
+              "note": ""
+            },
+            {
+              "id": "task-1768743437951",
+              "name": "Selah - 外網甘特",
+              "start": "2026-01-27",
+              "end": "2026-01-28",
               "status": "in_progress",
               "note": ""
             }
@@ -340,28 +362,7 @@
           ]
         }
       ]
-    },
-    {
-      "id": "group-1768735781832",
-      "name": "SMT",
-      "color": "#6366f1",
-      "projects": [
-        {
-          "id": "proj-repair",
-          "name": "Repair 項目優化",
-          "tasks": [
-            {
-              "id": "task-1768743437951",
-              "name": "新工作項目",
-              "start": null,
-              "end": null,
-              "status": "not_started",
-              "note": ""
-            }
-          ]
-        }
-      ]
     }
   ],
-  "exportedAt": "2026-01-18T13:47:33.682Z"
+  "exportedAt": "2026-01-18T13:56:53.291Z"
 }
